@@ -565,8 +565,6 @@ export default function App() {
         minWidth: "100%",
         maxWidth: "none",
         minHeight: "100vh",
-        overflowX: "visible",
-        overflowY: "visible",
         padding: "16px 18px 10px",
         boxSizing: "border-box",
         background: colors.pageBg,
@@ -578,6 +576,7 @@ export default function App() {
           width: "max-content",
           maxWidth: "none",
           paddingBottom: "8px",
+          boxSizing: "border-box",
           background: colors.pageBg,
         }}
       >

@@ -50,20 +50,40 @@
   }
 }
 
+body {
+  margin: 0;
+}
+
+body[data-view="main-popover"] {
+  overflow: auto;
+  background: #111214;
+}
+
+body[data-view="gain-modal"] {
+  overflow: hidden;
+  background: #111214;
+}
+
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-body {
+#root[data-view="main-popover"] {
+  width: max-content;
+  min-width: 100%;
   margin: 0;
+  border-inline: none;
+}
+
+#root[data-view="gain-modal"] {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  border-inline: none;
 }
 
 h1,

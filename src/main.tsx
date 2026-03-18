@@ -8,8 +8,19 @@ async function bootstrap() {
   const params = new URLSearchParams(window.location.search);
   const isGainModalView = params.get("view") === "gain-modal";
 
+  document.body.dataset.view = isGainModalView ? "gain-modal" : "main-popover";
+  document.documentElement.dataset.view = document.body.dataset.view;
+
+  const rootElement = document.getElementById("root");
+
+  if (!rootElement) {
+    throw new Error("Root element introuvable.");
+  }
+
+  rootElement.dataset.view = document.body.dataset.view;
+
   if (isGainModalView) {
-    ReactDOM.createRoot(document.getElementById("root")!).render(
+    ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
         <SharedGainPage />
       </React.StrictMode>
@@ -24,7 +35,7 @@ async function bootstrap() {
     console.error("Initialisation Owlbear impossible :", error);
   }
 
-  ReactDOM.createRoot(document.getElementById("root")!).render(
+  ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>

@@ -336,7 +336,7 @@ export default function TableEditor({
   }
 
   return (
-    <div style={{ width: "100%", overflowX: "auto" }}>
+    <div style={{ width: "100%", overflow: "visible" }}>
       <div style={{ marginBottom: "16px", textAlign: "center" }}>
         {!isEditingName ? (
           <div style={{ ...layout.centerRow }}>

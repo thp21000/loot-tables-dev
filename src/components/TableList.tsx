@@ -32,6 +32,29 @@ type TableListProps = {
   canManageTables: boolean;
 };
 
+const VIEW_ITEM_GRID_TEMPLATE = "minmax(160px, 220px) 72px 72px 118px 118px 108px";
+const VIEW_ITEM_MIN_WIDTH = "648px";
+
+const viewItemBlockStyle = {
+  width: "fit-content",
+  minWidth: VIEW_ITEM_MIN_WIDTH,
+  margin: 0,
+} as const;
+
+const viewItemRowStyle = {
+  width: "fit-content",
+  minWidth: VIEW_ITEM_MIN_WIDTH,
+  margin: 0,
+} as const;
+
+const viewItemNameCellStyle = {
+  width: "100%",
+  maxWidth: "220px",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+} as const;
+
 function getRarityColor(rarity: string): string {
   if (rarity === "Courant") return "#9ca3af";
   if (rarity === "Peu courant") return "#f59e0b";
@@ -318,15 +341,16 @@ export default function TableList({
                               Aucun objet dans cette table.
                             </p>
                           ) : (
-                            <>
+                            <div style={viewItemBlockStyle}>
                               <div
                                 style={{
                                   display: "flex",
                                   justifyContent: "flex-end",
                                   marginBottom: "10px",
+                                  width: "100%",
                                 }}
                               >
-                                <div style={{ minWidth: "250px" }}>
+                                <div style={{ width: "220px" }}>
                                   <label style={typography.label}>Trier les objets</label>
                                   <select
                                     value={getItemSortMode(table.id)}
@@ -356,15 +380,15 @@ export default function TableList({
                                 style={{
                                   display: "grid",
                                   gridTemplateColumns:
-                                    "2fr 2fr 90px 140px 140px 110px 90px",
+                                  VIEW_ITEM_GRID_TEMPLATE,
                                   gap: "8px",
                                   alignItems: "center",
                                   padding: "8px",
                                   marginBottom: "8px",
                                   fontWeight: "bold",
                                   color: colors.textSoft,
-                                  minWidth: "980px",
-                                  textAlign: "center",
+                                  textAlign: "left",
+                                  ...viewItemRowStyle,
                                 }}
                               >
                                 <div>Nom</div>
@@ -373,7 +397,6 @@ export default function TableList({
                                 <div>Catégorie</div>
                                 <div>Rareté</div>
                                 <div>Montant</div>
-                                <div>Devise</div>
                               </div>
 
                               <div style={{ display: "grid", gap: "8px" }}>
@@ -383,18 +406,18 @@ export default function TableList({
                                     style={{
                                       display: "grid",
                                       gridTemplateColumns:
-                                        "2fr 2fr 90px 140px 140px 110px 90px",
+                                      VIEW_ITEM_GRID_TEMPLATE,
                                       gap: "8px",
                                       alignItems: "center",
                                       padding: "10px",
                                       border: `1px solid ${colors.borderSoft}`,
                                       borderRadius: radius.md,
                                       background: colors.cardBgAlt,
-                                      minWidth: "980px",
-                                      textAlign: "center",
+                                      textAlign: "left",
+                                      ...viewItemRowStyle,
                                     }}
                                   >
-                                    <div>
+                                    <div style={viewItemNameCellStyle} title={item.name || "Sans nom"}>
                                       <strong>{item.name || "Sans nom"}</strong>
                                     </div>
 
@@ -423,12 +446,11 @@ export default function TableList({
                                     >
                                       {item.rarity}
                                     </div>
-                                    <div>{item.valueAmount}</div>
-                                    <div>{item.valueCurrency}</div>
+                                    <div>{item.valueAmount} {item.valueCurrency}</div>
                                   </div>
                                 ))}
                               </div>
-                            </>
+                            </div>
                           )}
                         </div>
                       )}
