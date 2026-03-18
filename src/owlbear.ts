@@ -29,6 +29,14 @@ export async function configureOwlbearAction(): Promise<void> {
   await OBR.action.setTitle("Loot Tables");
 }
 
+export async function setOwlbearPopoverWidth(width: number): Promise<void> {
+  try {
+    await OBR.action.setWidth(width);
+  } catch (error) {
+    console.error("Impossible de redimensionner le popover Owlbear :", error);
+  }
+}
+
 export async function getOwlbearRoomId(): Promise<string | null> {
   try {
     return OBR.room.id ?? null;

@@ -222,9 +222,15 @@ export default function TableList({
   }
 
   return (
-    <div style={{ marginTop: "16px" }}>
-      <div style={layout.toolbarCard}>
-        <div style={{ flex: "1 1 320px" }}>
+    <div style={{ marginTop: "16px", width: "fit-content", maxWidth: "100%" }}>
+      <div
+        style={{
+          ...layout.toolbarCard,
+          width: "100%",
+          maxWidth: "100%",
+        }}
+      >
+        <div style={{ width: "420px", maxWidth: "100%" }}>
           <label style={typography.label}>Rechercher une table</label>
           <input
             type="text"
@@ -235,7 +241,7 @@ export default function TableList({
           />
         </div>
 
-        <div style={{ minWidth: "240px" }}>
+        <div style={{ width: "280px", maxWidth: "100%" }}>
           <label style={typography.label}>Trier les tables</label>
           <select
             value={tableSortMode}
@@ -257,7 +263,7 @@ export default function TableList({
       {filteredAndSortedTables.length === 0 ? (
         <p style={typography.pageSubtitle}>Aucune table ne correspond à la recherche.</p>
       ) : (
-        <div style={{ display: "grid", gap: "16px" }}>
+        <div style={{ display: "grid", gap: "16px", width: "100%" }}>
           {filteredAndSortedTables.map((table) => {
             const isEditing = editingTableId === table.id;
             const isExpanded = expandedTableIds.includes(table.id);
@@ -267,16 +273,16 @@ export default function TableList({
             );
 
             return (
-              <div key={table.id} style={layout.card}>
+              <div
+                key={table.id}
+                style={{
+                  ...layout.card,
+                  width: "100%",
+                  maxWidth: "100%",
+                }}
+              >
                 {!isEditing ? (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: canManageTables ? "1fr auto" : "1fr",
-                      gap: "16px",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div>
                     <div>
                       <h3 style={typography.cardTitle}>{table.name}</h3>
 
@@ -302,7 +308,13 @@ export default function TableList({
                       </p>
 
                       {canManageTables ? (
-                        <div style={layout.centerRow}>
+                      <div
+                        style={{
+                          ...layout.centerRow,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
                           <button onClick={() => onEdit(table.id)} style={buttons.secondary}>
                             Modifier
                           </button>
@@ -317,6 +329,28 @@ export default function TableList({
                           </button>
                           <button onClick={() => onExportTableCsv(table.id)} style={buttons.secondary}>
                             Export CSV
+                          </button>
+                          <button
+                            onClick={() => onQuickRoll(table.id)}
+                            title="Tirage rapide"
+                            style={{
+                              ...buttons.icon,
+                              width: "52px",
+                              height: "52px",
+                              borderRadius: "999px",
+                              background: "#f59e0b",
+                              border: "none",
+                              fontSize: "1.25rem",
+                            }}
+                          >
+                            ⚡
+                          </button>
+                          <button
+                            onClick={() => onRoll(table.id)}
+                            title="Lancer la table"
+                            style={buttons.launch}
+                          >
+                            ▶
                           </button>
                         </div>
                       ) : null}
@@ -455,43 +489,6 @@ export default function TableList({
                         </div>
                       )}
                     </div>
-
-                    {canManageTables ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "10px",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                        }}
-                      >
-                        <button
-                          onClick={() => onQuickRoll(table.id)}
-                          title="Tirage rapide"
-                          style={{
-                            ...buttons.icon,
-                            width: "52px",
-                            height: "52px",
-                            borderRadius: "999px",
-                            background: "#f59e0b",
-                            border: "none",
-                            fontSize: "1.25rem",
-                          }}
-                        >
-                          ⚡
-                        </button>
-
-                        <button
-                          onClick={() => onRoll(table.id)}
-                          title="Lancer la table"
-                          style={buttons.launch}
-                        >
-                          ▶
-                        </button>
-                      </div>
-                    ) : null}
                   </div>
                 ) : (
                   <TableEditor

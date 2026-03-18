@@ -44,6 +44,7 @@ import {
   openValidatedRollModal,
   publishValidatedRoll,
   setRoomState,
+  setOwlbearPopoverWidth,
   subscribeToRoomState,
   subscribeToValidatedRolls,
 } from "./owlbear";
@@ -188,6 +189,7 @@ export default function App() {
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const importCsvInputRef = useRef<HTMLInputElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     saveTables(tables);
@@ -246,6 +248,49 @@ export default function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!owlbearContext.isOwlbearReady) {
+      return;
+    }
+
+    const contentElement = contentRef.current;
+
+    if (!contentElement) {
+      return;
+    }
+
+    let animationFrameId = 0;
+
+    const syncPopoverWidth = () => {
+      cancelAnimationFrame(animationFrameId);
+
+      animationFrameId = window.requestAnimationFrame(() => {
+        const popoverHorizontalPadding = 56;
+        const measuredWidth = Math.ceil(contentElement.scrollWidth + popoverHorizontalPadding);
+        const nextWidth = Math.max(640, Math.min(1400, measuredWidth));
+        void setOwlbearPopoverWidth(nextWidth);
+      });
+    };
+
+    syncPopoverWidth();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            syncPopoverWidth();
+          })
+        : null;
+
+    resizeObserver?.observe(contentElement);
+    window.addEventListener("resize", syncPopoverWidth);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", syncPopoverWidth);
+    };
+  }, [owlbearContext.isOwlbearReady, tables, editingTableId, expandedTableIds, playerRole]);
 
   function handleCreateTable() {
     const now = new Date().toISOString();
@@ -555,7 +600,6 @@ export default function App() {
       : tables.find((table) => table.id === rollingTableId) ?? null;
 
   const canManageTables = playerRole === "GM";
-  const contentMinWidth = canManageTables ? 1220 : 1040;
 
   return (
     <div
@@ -571,8 +615,8 @@ export default function App() {
       }}
     >
       <div
+        ref={contentRef}
         style={{
-          minWidth: `${contentMinWidth}px`,
           width: "max-content",
           maxWidth: "none",
           paddingBottom: "8px",
@@ -621,56 +665,81 @@ export default function App() {
             style={{ display: "none" }}
           />
 
-          <TableList
-            tables={tables}
-            editingTableId={editingTableId}
-            onEdit={handleEditTable}
-            onDelete={handleDeleteTable}
-            onRoll={handleRollTable}
-            onQuickRoll={handleQuickRollTable}
-            onDuplicate={handleDuplicateTable}
-            onExportTableJson={handleExportSingleTableJson}
-            onExportTableCsv={handleExportSingleTableCsv}
-            onSaveTable={handleSaveEditedTable}
-            onCancelEdit={handleCancelEdit}
-            onImportCsvIntoTable={handleImportCsvIntoTable}
-            onShowAlert={(message) => setAlertMessage(message)}
-            searchTerm={searchTerm}
-            onSearchTermChange={setSearchTerm}
-            tableSortMode={tableSortMode}
-            onTableSortModeChange={setTableSortMode}
-            expandedTableIds={expandedTableIds}
-            onExpandedTableIdsChange={setExpandedTableIds}
-            itemSortModes={itemSortModes}
-            onItemSortModesChange={setItemSortModes}
-            canManageTables={canManageTables}
-          />
+<div style={{ width: "fit-content", maxWidth: "100%" }}>
+            <TableList
+              tables={tables}
+              editingTableId={editingTableId}
+              onEdit={handleEditTable}
+              onDelete={handleDeleteTable}
+              onRoll={handleRollTable}
+              onQuickRoll={handleQuickRollTable}
+              onDuplicate={handleDuplicateTable}
+              onExportTableJson={handleExportSingleTableJson}
+              onExportTableCsv={handleExportSingleTableCsv}
+              onSaveTable={handleSaveEditedTable}
+              onCancelEdit={handleCancelEdit}
+              onImportCsvIntoTable={handleImportCsvIntoTable}
+              onShowAlert={(message) => setAlertMessage(message)}
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              tableSortMode={tableSortMode}
+              onTableSortModeChange={setTableSortMode}
+              expandedTableIds={expandedTableIds}
+              onExpandedTableIdsChange={setExpandedTableIds}
+              itemSortModes={itemSortModes}
+              onItemSortModesChange={setItemSortModes}
+              canManageTables={canManageTables}
+            />
 
-          <div
-            style={{
-              marginTop: "12px",
-              paddingTop: "8px",
-              borderTop: `1px solid ${colors.borderSoft}`,
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "6px 14px",
-              color: colors.textMuted,
-              fontSize: "0.82rem",
-              lineHeight: 1.2,
-            }}
-          >
-            <span>Mode : {getRoleLabel(playerRole)}</span>
-            <span>Owlbear : {owlbearContext.isOwlbearReady ? "connecté" : "initialisation"}</span>
-            {owlbearContext.roomId ? <span>Room : {owlbearContext.roomId}</span> : null}
-            {roomState.lastOpenedAt ? (
-              <span>
-                Dernière ouverture : {new Date(roomState.lastOpenedAt).toLocaleString()}
-              </span>
-            ) : null}
-            {roomState.lastValidatedRoll ? (
-              <span>Dernier gain : {roomState.lastValidatedRoll.tableName}</span>
-            ) : null}
+            <div
+              style={{
+                width: "100%",
+                marginTop: "12px",
+                paddingTop: "8px",
+                borderTop: `1px solid ${colors.borderSoft}`,
+                display: "grid",
+                gap: "6px",
+                color: colors.textMuted,
+                fontSize: "0.82rem",
+                lineHeight: 1.2,
+                boxSizing: "border-box",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-start",
+                  gap: "6px 14px",
+                }}
+              >
+                <span>Mode : {getRoleLabel(playerRole)}</span>
+                <span>Owlbear : {owlbearContext.isOwlbearReady ? "connecté" : "initialisation"}</span>
+                {owlbearContext.roomId ? (
+                  <span style={{ overflowWrap: "anywhere" }}>
+                    Room : {owlbearContext.roomId}
+                  </span>
+                ) : null}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-start",
+                  gap: "6px 14px",
+                }}
+              >
+                {roomState.lastOpenedAt ? (
+                  <span>
+                    Dernière ouverture : {new Date(roomState.lastOpenedAt).toLocaleString()}
+                  </span>
+                ) : null}
+                {roomState.lastValidatedRoll ? (
+                  <span>Dernier gain : {roomState.lastValidatedRoll.tableName}</span>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
 

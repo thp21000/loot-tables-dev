@@ -44,11 +44,16 @@
   - Validation d’un tirage par le MJ
   - Notification Owlbear à tous lors d’un tirage validé
   - Vraie modale Owlbear de gain chez tous les clients
+  - Popover principal Owlbear redimensionné dynamiquement selon la largeur réelle du contenu utile
+  - Marges latérales du popover principal rééquilibrées pour éviter que le contenu colle au bord droit
+  - Barre recherche/tri, cartes de tables et footer secondaire alignés sur une largeur utile commune
+  - Footer secondaire restructuré sur deux lignes pour mieux tenir dans le popover
+  - Boutons de lancement rapide / lancer déplacés dans la ligne d’actions principale des tables
 - Ce qui est en cours :
-  - Finition de l’ergonomie visuelle du popover principal (largeur, scroll global, fond, conteneur principal)
+  - Finition de l’ergonomie visuelle du popover principal (polish final largeur réelle, densité, alignements fins)
 - Ce qui bloque :
-  - Le popover Owlbear semble plafonné en largeur côté plateforme, ou au moins ne s’élargit pas visiblement au-delà d’une certaine taille.
-  - Le comportement du scroll horizontal / vertical et du fond principal a nécessité plusieurs ajustements et reste le dernier point d’UI à fiabiliser.
+  - Le popover Owlbear reste dépendant des limites de rendu de la plateforme ; même avec redimensionnement dynamique, le comportement réel doit encore être validé dans Owlbear sur plusieurs cas d’usage.
+  - Le dernier sujet ouvert n’est plus la base technique du scroll/fond, mais les derniers ajustements visuels de densité et d’équilibre des marges.
 
 ## Architecture du projet
 - `public/manifest.json`
@@ -60,14 +65,17 @@
 - `src/main.tsx`
   - Point d’entrée
   - Détecte `?view=gain-modal` pour rendre une vue dédiée à la modale Owlbear des gains
+  - Pose un `data-view` sur `body`, `html` et `#root` pour distinguer popover principal et modale de gain
   - Sinon rend l’application principale
 - `src/App.tsx`
   - UI principale de l’extension
   - Gère tables, imports, exports, tirages, validation, rôle MJ/joueur, footer secondaire, état Owlbear
+  - Mesure la largeur réelle du contenu principal pour redimensionner le popover Owlbear
 - `src/owlbear.ts`
   - Couche utilitaire Owlbear SDK
   - `waitForOwlbearReady`
   - configuration du popover principal
+  - redimensionnement dynamique de la largeur du popover principal
   - lecture rôle / room / player name
   - room metadata
   - notifications
@@ -77,6 +85,7 @@
   - Affichage des tables
   - Actions MJ seulement
   - Affichage des objets en consultation
+  - Porte l’essentiel du dernier chantier de layout (largeurs partagées, densité des blocs, grille d’objets, alignements)
 - `src/components/TableEditor.tsx`
   - Édition d’une table
   - Lignes d’objets validables individuellement
@@ -99,11 +108,9 @@
   - Logique de tirage, probabilités, catégories disponibles
 
 ## Bug(s) ou problème(s) connu(s)
-- Le popover principal Owlbear ne semble pas s’agrandir visuellement malgré une augmentation de `action.width` / `OBR.action.setWidth`.
-- Le scroll horizontal a d’abord été mis sur un conteneur interne ; il a fallu le déplacer au niveau du popover global.
-- Le scroll vertical a parfois été dupliqué (scroll interne + scroll popover).
-- Le fond principal noir n’était pas toujours étendu à toute la largeur scrollable.
-- Le dernier chantier ouvert concerne précisément : largeur / scroll / fond du popover principal.
+- La base technique largeur / scroll / fond du popover principal a été largement stabilisée, mais un dernier polish visuel reste nécessaire selon le rendu réel dans Owlbear.
+- Le redimensionnement dynamique du popover dépend encore du comportement effectif de la plateforme Owlbear ; il faut continuer à valider le rendu réel après chaque micro-ajustement.
+- Le footer secondaire et certaines zones d’actions ont été densifiés récemment ; les prochaines retouches doivent rester locales pour éviter de casser les alignements déjà obtenus.
 
 ## Fonctionnalités
 ### Déjà faites
@@ -144,8 +151,8 @@
 - [x] Nom d’objet cliquable dans la modale de gain si URL présente
 
 ### En cours
-- [ ] Finaliser le comportement de largeur du popover principal Owlbear
-- [ ] Finaliser le comportement du scroll global (horizontal/vertical) et du fond sur toute la largeur utile
+- [ ] Finaliser le polish visuel du popover principal Owlbear maintenant que la base largeur/scroll/fond est en place
+- [ ] Valider en situation réelle Owlbear les derniers réglages de largeur dynamique, marges et alignements
 
 ### À faire ensuite
 - [ ] Continuer le polish visuel de la vue principale
@@ -176,15 +183,20 @@ Décrire où on en est exactement au moment de reprendre.
 L’extension est globalement fonctionnelle et jouable.
 Le déploiement GitLab Pages est réglé et le manifest Owlbear fonctionne.
 Les fonctionnalités cœur (tables, imports, tirages, validation, partage) sont en place.
-Le dernier sujet non entièrement stabilisé est l’ergonomie de la vue principale dans le popover Owlbear :
-- contenu large
-- largeur du popover qui semble plafonner
-- gestion du scroll horizontal au niveau global
-- suppression des doubles scrolls verticaux
-- extension du fond principal à toute la largeur scrollable
+Le popover principal a beaucoup avancé :
+- le `#root` et le `body` distinguent maintenant explicitement la vue popover principale et la vue modale de gain
+- la largeur du popover est maintenant recalculée dynamiquement à partir de la largeur réelle du contenu principal
+- la largeur minimale fixe du conteneur principal a été retirée
+- les marges gauche/droite ont été rééquilibrées pour éviter que le contenu colle au bord droit
+- la barre recherche/tri, les cartes de table et le footer secondaire partagent désormais une largeur utile cohérente
+- le footer secondaire a été restructuré sur deux lignes pour mieux tenir dans le popover
+- la grille de lecture des objets a été resserrée, alignée à gauche, et la colonne montant/devise a été fusionnée
+- les boutons de lancement rapide et de lancer sont remontés dans la ligne d’actions principale des tables
 
-Le footer secondaire a déjà été déplacé en bas et compacté.
-Le bug actuellement traité au moment de la coupure concernait encore l’interface principale et non la logique métier.
+Le sujet encore ouvert n’est plus une refonte du comportement global, mais un polish visuel ciblé du popover principal dans Owlbear :
+- vérifier que la largeur dynamique reste agréable selon les cas réels
+- vérifier les derniers alignements visuels entre header, cartes, footer et marges
+- éviter toute régression sur le scroll global et le fond principal
 
 ## Journal de session
 ### Session du 2026-03-16
@@ -230,6 +242,34 @@ Le bug actuellement traité au moment de la coupure concernait encore l’interf
   - fond noir principal à ajuster selon la largeur réelle
 - prochaine action utile :
   - reprendre le travail sur `src/App.tsx` et éventuellement `src/styles/ui.ts` pour stabiliser définitivement le conteneur principal du popover
+
+### Session du 2026-03-18
+- sujets traités :
+  - Stabilisation incrémentale du layout du popover principal Owlbear
+  - Unification des largeurs utiles entre la barre recherche/tri, les cartes de tables et le footer secondaire
+  - Réduction de la densité horizontale de la vue de lecture des objets
+  - Fusion de l’affichage montant + devise dans la vue de consultation
+  - Déplacement des boutons de lancement rapide / lancer dans la ligne d’actions principale
+  - Redimensionnement dynamique du popover principal en fonction de la largeur réelle du contenu
+  - Rééquilibrage des marges latérales du popover
+- fichiers modifiés :
+  - `src/App.tsx`
+  - `src/owlbear.ts`
+  - `src/main.tsx`
+  - `src/index.css`
+  - `src/components/TableList.tsx`
+  - `src/components/TableEditor.tsx`
+- décisions prises :
+  - conserver l’approche incrémentale par petites touches sur le layout
+  - garder un redimensionnement dynamique du popover basé sur la largeur réelle du contenu
+  - garder une petite marge de sécurité à droite du popover pour l’aération visuelle
+  - garder une largeur partagée entre la barre de recherche/tri, la liste des tables et le footer secondaire
+  - garder le footer secondaire en deux lignes plutôt que de forcer une seule ligne trop longue
+- problèmes restants :
+  - vérifier dans Owlbear le comportement réel du popover selon plusieurs états d’interface
+  - finir le polish visuel des espacements et alignements fins
+- prochaine action utile :
+  - vérifier en situation réelle Owlbear les derniers réglages de largeur dynamique et corriger uniquement les derniers écarts visuels constatés
 
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.
