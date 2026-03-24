@@ -1,4 +1,4 @@
-import type { ItemSortMode, LootTable, TableSortMode } from "../types";
+import type { GameSystem, ItemSortMode, LootTable, TableSortMode } from "../types";
 import { useMemo } from "react";
 import TableEditor from "./TableEditor";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
@@ -11,15 +11,8 @@ type TableListProps = {
   onRoll: (tableId: string) => void;
   onQuickRoll: (tableId: string) => void;
   onDuplicate: (tableId: string) => void;
-  onExportTableJson: (tableId: string) => void;
-  onExportTableCsv: (tableId: string) => void;
   onSaveTable: (updatedTable: LootTable) => void;
   onCancelEdit: () => void;
-  onImportCsvIntoTable: (
-    tableId: string,
-    file: File,
-    mode: import("../types").ImportMode
-  ) => Promise<void>;
   onShowAlert: (message: string) => void;
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
@@ -30,9 +23,11 @@ type TableListProps = {
   itemSortModes: Record<string, ItemSortMode>;
   onItemSortModesChange: (value: Record<string, ItemSortMode>) => void;
   canManageTables: boolean;
+  currentSystem: GameSystem;
 };
 
-const VIEW_ITEM_GRID_TEMPLATE = "minmax(160px, 220px) 72px 72px 118px 118px 108px";
+const VIEW_ITEM_GRID_TEMPLATE_PF2E = "minmax(160px, 220px) 72px 72px 118px 118px 108px";
+const VIEW_ITEM_GRID_TEMPLATE_DND5E = "minmax(160px, 220px) 72px 128px 128px 118px 108px";
 const VIEW_ITEM_MIN_WIDTH = "648px";
 
 const viewItemBlockStyle = {
@@ -71,10 +66,11 @@ function getRarityRank(rarity: string): number {
 
 function getValueInCopper(
   valueAmount: number,
-  valueCurrency: "pc" | "pa" | "po" | "pp"
+  valueCurrency: "pc" | "pa" | "pe" | "po" | "pp"
 ): number {
   if (valueCurrency === "pc") return valueAmount;
   if (valueCurrency === "pa") return valueAmount * 10;
+  if (valueCurrency === "pe") return valueAmount * 50;
   if (valueCurrency === "po") return valueAmount * 100;
   return valueAmount * 1000;
 }
@@ -169,11 +165,8 @@ export default function TableList({
   onRoll,
   onQuickRoll,
   onDuplicate,
-  onExportTableJson,
-  onExportTableCsv,
   onSaveTable,
   onCancelEdit,
-  onImportCsvIntoTable,
   onShowAlert,
   searchTerm,
   onSearchTermChange,
@@ -184,7 +177,12 @@ export default function TableList({
   itemSortModes,
   onItemSortModesChange,
   canManageTables,
+  currentSystem,
 }: TableListProps) {
+  const viewItemGridTemplate =
+    currentSystem === "DND5E"
+      ? VIEW_ITEM_GRID_TEMPLATE_DND5E
+      : VIEW_ITEM_GRID_TEMPLATE_PF2E;
   function toggleExpanded(tableId: string) {
     onExpandedTableIdsChange(
       expandedTableIds.includes(tableId)
@@ -324,12 +322,6 @@ export default function TableList({
                           <button onClick={() => onDuplicate(table.id)} style={buttons.secondary}>
                             Dupliquer
                           </button>
-                          <button onClick={() => onExportTableJson(table.id)} style={buttons.secondary}>
-                            Export JSON
-                          </button>
-                          <button onClick={() => onExportTableCsv(table.id)} style={buttons.secondary}>
-                            Export CSV
-                          </button>
                           <button
                             onClick={() => onQuickRoll(table.id)}
                             title="Tirage rapide"
@@ -413,8 +405,7 @@ export default function TableList({
                               <div
                                 style={{
                                   display: "grid",
-                                  gridTemplateColumns:
-                                  VIEW_ITEM_GRID_TEMPLATE,
+                                  gridTemplateColumns: viewItemGridTemplate,
                                   gap: "8px",
                                   alignItems: "center",
                                   padding: "8px",
@@ -427,8 +418,9 @@ export default function TableList({
                               >
                                 <div>Nom</div>
                                 <div>Fiche</div>
-                                <div>Niveau</div>
+                                {currentSystem === "PF2E" ? <div>Niveau</div> : null}
                                 <div>Catégorie</div>
+                                {currentSystem === "DND5E" ? <div>Type</div> : null}
                                 <div>Rareté</div>
                                 <div>Montant</div>
                               </div>
@@ -439,8 +431,7 @@ export default function TableList({
                                     key={item.id}
                                     style={{
                                       display: "grid",
-                                      gridTemplateColumns:
-                                      VIEW_ITEM_GRID_TEMPLATE,
+                                      gridTemplateColumns: viewItemGridTemplate,
                                       gap: "8px",
                                       alignItems: "center",
                                       padding: "10px",
@@ -470,8 +461,11 @@ export default function TableList({
                                       )}
                                     </div>
 
-                                    <div>Niv. {item.level}</div>
+                                    {currentSystem === "PF2E" ? <div>Niv. {item.level}</div> : null}
                                     <div>{item.category}</div>
+                                    {currentSystem === "DND5E" ? (
+                                      <div>{item.type || "Aucun"}</div>
+                                    ) : null}
                                     <div
                                       style={{
                                         color: getRarityColor(item.rarity),
@@ -493,9 +487,9 @@ export default function TableList({
                 ) : (
                   <TableEditor
                     table={table}
+                    currentSystem={currentSystem}
                     onSave={onSaveTable}
                     onCancel={onCancelEdit}
-                    onImportCsvIntoTable={onImportCsvIntoTable}
                     onShowAlert={onShowAlert}
                   />
                 )}

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
-  ImportMode,
+  GameSystem,
   LootCategory,
   LootCurrency,
   LootItem,
@@ -8,17 +8,12 @@ import type {
   LootTable,
 } from "../types";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
-import ConfirmModal from "./ConfirmModal";
 
 type TableEditorProps = {
   table: LootTable;
+  currentSystem: GameSystem;
   onSave: (updatedTable: LootTable) => void;
   onCancel: () => void;
-  onImportCsvIntoTable: (
-    tableId: string,
-    file: File,
-    mode: ImportMode
-  ) => Promise<void>;
   onShowAlert: (message: string) => void;
 };
 
@@ -27,7 +22,7 @@ type EditableLootItem = LootItem & {
   isNew?: boolean;
 };
 
-const CATEGORY_OPTIONS: LootCategory[] = [
+const PF2E_CATEGORY_OPTIONS: LootCategory[] = [
   "Arme",
   "Armure",
   "Consommable",
@@ -37,14 +32,63 @@ const CATEGORY_OPTIONS: LootCategory[] = [
   "Autre",
 ];
 
-const RARITY_OPTIONS: LootRarity[] = [
+const PF2E_RARITY_OPTIONS: LootRarity[] = [
   "Courant",
   "Peu courant",
   "Rare",
   "Unique",
 ];
 
-const CURRENCY_OPTIONS: LootCurrency[] = ["pc", "pa", "po", "pp"];
+const DND5E_CATEGORY_OPTIONS: LootCategory[] = [
+  "Armes",
+  "Armures",
+  "Équipement d'aventurier",
+  "Outils",
+  "Montures et véhicules",
+  "Marchandises",
+  "Objets magiques",
+  "Poisons",
+  "Herbes",
+];
+
+const DND5E_TYPE_OPTIONS = [
+  "Aucun",
+  "Anneau",
+  "Arme",
+  "Armure",
+  "Baguette",
+  "Bâton",
+  "Objets merveilleux",
+  "Parchemin",
+  "Potion",
+  "Sceptre",
+  "Plante",
+  "Venin",
+  "Toxine",
+  "Mixture",
+  "Altérant",
+  "Antipoison",
+  "Curatif",
+  "Dopant",
+  "Fortifiant",
+] as const;
+
+const DND5E_RARITY_OPTIONS: LootRarity[] = [
+  "Aucun",
+  "Commun (niv 1)",
+  "Peu commun (niv 1)",
+  "Rare",
+  "Très rare (niv 11)",
+  "Légendaire (niv 17)",
+  "Artéfact",
+];
+
+const CURRENCY_OPTIONS: LootCurrency[] = ["pc", "pa", "pe", "po", "pp"];
+const EDITOR_ITEM_GRID_TEMPLATE_PF2E =
+  "minmax(220px, 300px) minmax(160px, 220px) 86px 130px 130px 160px auto";
+const EDITOR_ITEM_GRID_TEMPLATE_DND5E =
+  "minmax(220px, 300px) minmax(160px, 220px) 130px 130px 130px 160px auto";
+const EDITOR_ITEM_MIN_WIDTH = "980px";
 
 function createEmptyItem(): EditableLootItem {
   return {
@@ -53,6 +97,7 @@ function createEmptyItem(): EditableLootItem {
     url: "",
     level: 0,
     category: "Autre",
+    type: "Aucun",
     rarity: "Courant",
     valueAmount: 0,
     valueCurrency: "pc",
@@ -120,6 +165,7 @@ function parsePastedRows(text: string): LootItem[] {
       url: (parts[1] ?? "").trim(),
       level: Number(parts[2]) || 0,
       category: normalizePastedCategory((parts[3] ?? "").trim()),
+      type: "Aucun",
       rarity: normalizePastedRarity((parts[4] ?? "").trim()),
       valueAmount: Number(parts[5]) || 0,
       valueCurrency: normalizePastedCurrency((parts[6] ?? "").trim()),
@@ -129,26 +175,30 @@ function parsePastedRows(text: string): LootItem[] {
 
 export default function TableEditor({
   table,
+  currentSystem,
   onSave,
   onCancel,
-  onImportCsvIntoTable,
   onShowAlert,
 }: TableEditorProps) {
+  const categoryOptions =
+    currentSystem === "DND5E" ? DND5E_CATEGORY_OPTIONS : PF2E_CATEGORY_OPTIONS;
+  const rarityOptions =
+    currentSystem === "DND5E" ? DND5E_RARITY_OPTIONS : PF2E_RARITY_OPTIONS;
+  const editorItemGridTemplate =
+    currentSystem === "DND5E"
+      ? EDITOR_ITEM_GRID_TEMPLATE_DND5E
+      : EDITOR_ITEM_GRID_TEMPLATE_PF2E;
   const [name, setName] = useState(table.name);
   const [isEditingName, setIsEditingName] = useState(false);
   const [items, setItems] = useState<EditableLootItem[]>([]);
   const [pasteArea, setPasteArea] = useState("");
   const [isPasteAreaOpen, setIsPasteAreaOpen] = useState(false);
-  const [pendingCsvFile, setPendingCsvFile] = useState<File | null>(null);
-
-  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setName(table.name);
     setIsEditingName(false);
     setPasteArea("");
     setIsPasteAreaOpen(false);
-    setPendingCsvFile(null);
     setItems(
       table.items.map((item) => ({
         ...item,
@@ -242,36 +292,6 @@ export default function TableEditor({
     );
   }
 
-  function handleCsvImport(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    setPendingCsvFile(file);
-    event.target.value = "";
-  }
-
-  async function confirmCsvImport(mode: ImportMode) {
-    if (!pendingCsvFile) {
-      return;
-    }
-
-    try {
-      await onImportCsvIntoTable(table.id, pendingCsvFile, mode);
-    } catch (error) {
-      console.error(error);
-      onShowAlert("Impossible d’importer ce CSV dans la table.");
-    } finally {
-      setPendingCsvFile(null);
-    }
-  }
-
-  function cancelCsvImport() {
-    setPendingCsvFile(null);
-  }
-
   function handlePasteImport() {
     const importedItems = parsePastedRows(pasteArea).filter(
       (item) => item.name.trim() !== ""
@@ -320,6 +340,7 @@ export default function TableEditor({
       url: item.url.trim(),
       level: Number(item.level) || 0,
       category: item.category,
+      type: item.type || "Aucun",
       rarity: item.rarity,
       valueAmount: Number(item.valueAmount) || 0,
       valueCurrency: item.valueCurrency,
@@ -367,21 +388,7 @@ export default function TableEditor({
         <button onClick={handleAddItem} style={buttons.primary}>
           Ajouter une ligne d’objet
         </button>
-        <button
-          onClick={() => importInputRef.current?.click()}
-          style={buttons.secondary}
-        >
-          Importer un CSV dans cette table
-        </button>
       </div>
-
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".csv,text/csv"
-        onChange={handleCsvImport}
-        style={{ display: "none" }}
-      />
 
       <div style={{ ...layout.sectionCard, marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -422,24 +429,24 @@ export default function TableEditor({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "2fr 2fr 90px 140px 140px 110px 90px auto",
+          gridTemplateColumns: editorItemGridTemplate,
           gap: "8px",
           alignItems: "center",
           padding: "10px",
           marginBottom: "8px",
           fontWeight: "bold",
           color: colors.textSoft,
-          minWidth: "1140px",
+          minWidth: EDITOR_ITEM_MIN_WIDTH,
           textAlign: "center",
         }}
       >
         <div>Nom</div>
         <div>Fiche</div>
-        <div>Niveau</div>
+        {currentSystem === "PF2E" ? <div>Niveau</div> : null}
         <div>Catégorie</div>
+        {currentSystem === "DND5E" ? <div>Type</div> : null}
         <div>Rareté</div>
         <div>Montant</div>
-        <div>Devise</div>
         <div>Actions</div>
       </div>
 
@@ -451,15 +458,14 @@ export default function TableEditor({
                 key={item.id}
                 style={{
                   display: "grid",
-                  gridTemplateColumns:
-                    "2fr 2fr 90px 140px 140px 110px 90px auto",
+                  gridTemplateColumns: editorItemGridTemplate,
                   gap: "8px",
                   alignItems: "center",
                   padding: "10px",
                   border: `1px solid ${colors.borderSoft}`,
                   borderRadius: radius.md,
                   background: colors.cardBgAlt,
-                  minWidth: "1140px",
+                  minWidth: EDITOR_ITEM_MIN_WIDTH,
                 }}
               >
                 <input
@@ -480,19 +486,21 @@ export default function TableEditor({
                   style={{ ...controls.input, textAlign: "center" }}
                 />
 
-                <input
-                  type="number"
-                  min="0"
-                  value={item.level}
-                  onChange={(event) =>
-                    handleItemChange(
-                      item.id,
-                      "level",
-                      Number(event.target.value)
-                    )
-                  }
-                  style={{ ...controls.input, textAlign: "center" }}
-                />
+                {currentSystem === "PF2E" ? (
+                  <input
+                    type="number"
+                    min="0"
+                    value={item.level}
+                    onChange={(event) =>
+                      handleItemChange(
+                        item.id,
+                        "level",
+                        Number(event.target.value)
+                      )
+                    }
+                    style={{ ...controls.input, textAlign: "center" }}
+                  />
+                ) : null}
 
                 <select
                   value={item.category}
@@ -505,12 +513,28 @@ export default function TableEditor({
                   }
                   style={{ ...controls.select, textAlign: "center" }}
                 >
-                  {CATEGORY_OPTIONS.map((option) => (
+                  {categoryOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </select>
+
+                {currentSystem === "DND5E" ? (
+                  <select
+                    value={item.type || "Aucun"}
+                    onChange={(event) =>
+                      handleItemChange(item.id, "type", event.target.value)
+                    }
+                    style={{ ...controls.select, textAlign: "center" }}
+                  >
+                    {DND5E_TYPE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
 
                 <select
                   value={item.rarity}
@@ -523,44 +547,46 @@ export default function TableEditor({
                   }
                   style={{ ...controls.select, textAlign: "center" }}
                 >
-                  {RARITY_OPTIONS.map((option) => (
+                  {rarityOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </select>
 
-                <input
-                  type="number"
-                  min="0"
-                  value={item.valueAmount}
-                  onChange={(event) =>
-                    handleItemChange(
-                      item.id,
-                      "valueAmount",
-                      Number(event.target.value)
-                    )
-                  }
-                  style={{ ...controls.input, textAlign: "center" }}
-                />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 72px", gap: "6px" }}>
+                  <input
+                    type="number"
+                    min="0"
+                    value={item.valueAmount}
+                    onChange={(event) =>
+                      handleItemChange(
+                        item.id,
+                        "valueAmount",
+                        Number(event.target.value)
+                      )
+                    }
+                    style={{ ...controls.input, textAlign: "center" }}
+                  />
 
-                <select
-                  value={item.valueCurrency}
-                  onChange={(event) =>
-                    handleItemChange(
-                      item.id,
-                      "valueCurrency",
-                      event.target.value as LootCurrency
-                    )
-                  }
-                  style={{ ...controls.select, textAlign: "center" }}
-                >
-                  {CURRENCY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={item.valueCurrency}
+                    onChange={(event) =>
+                      handleItemChange(
+                        item.id,
+                        "valueCurrency",
+                        event.target.value as LootCurrency
+                      )
+                    }
+                    style={{ ...controls.select, textAlign: "center" }}
+                  >
+                    {CURRENCY_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div style={layout.centerRow}>
                   <button
@@ -587,15 +613,14 @@ export default function TableEditor({
               key={item.id}
               style={{
                 display: "grid",
-                gridTemplateColumns:
-                  "2fr 2fr 90px 140px 140px 110px 90px auto",
+                gridTemplateColumns: editorItemGridTemplate,
                 gap: "8px",
                 alignItems: "center",
                 padding: "10px",
                 border: `1px solid ${colors.borderSoft}`,
                 borderRadius: radius.md,
                 background: colors.cardBgAlt,
-                minWidth: "1140px",
+                minWidth: EDITOR_ITEM_MIN_WIDTH,
                 textAlign: "center",
               }}
             >
@@ -618,13 +643,13 @@ export default function TableEditor({
                 )}
               </div>
 
-              <div>Niv. {item.level}</div>
+              {currentSystem === "PF2E" ? <div>Niv. {item.level}</div> : null}
               <div>{item.category}</div>
+              {currentSystem === "DND5E" ? <div>{item.type || "Aucun"}</div> : null}
               <div style={{ color: getRarityColor(item.rarity), fontWeight: 700 }}>
                 {item.rarity}
               </div>
-              <div>{item.valueAmount}</div>
-              <div>{item.valueCurrency}</div>
+              <div>{item.valueAmount} {item.valueCurrency}</div>
 
               <div style={layout.centerRow}>
                 <button title="Modifier" onClick={() => handleEditItem(item.id)} style={buttons.icon}>
@@ -650,26 +675,6 @@ export default function TableEditor({
           Annuler
         </button>
       </div>
-
-      <ConfirmModal
-        isOpen={pendingCsvFile !== null}
-        title="Importer un CSV"
-        message="Que veux-tu faire avec les objets du fichier CSV ?"
-        onCancel={cancelCsvImport}
-        customFooter={
-          <>
-            <button onClick={() => confirmCsvImport("append")} style={buttons.primary}>
-              Ajouter à la table
-            </button>
-            <button onClick={() => confirmCsvImport("replace")} style={buttons.danger}>
-              Remplacer la table
-            </button>
-            <button onClick={cancelCsvImport} style={buttons.secondary}>
-              Annuler
-            </button>
-          </>
-        }
-      />
     </div>
   );
 }

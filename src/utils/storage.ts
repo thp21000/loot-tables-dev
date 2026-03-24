@@ -1,4 +1,5 @@
 import type {
+  GameSystem,
   ItemSortMode,
   LootItem,
   LootTable,
@@ -7,8 +8,12 @@ import type {
   UIState,
 } from "../types";
 
-const STORAGE_KEY = "owlbear-loot-tables";
+const STORAGE_KEY_PREFIX = "owlbear-loot-tables";
 const UI_STATE_KEY = "owlbear-loot-tables-ui-state";
+
+function getStorageKey(system: GameSystem): string {
+  return `${STORAGE_KEY_PREFIX}-${system.toLowerCase()}`;
+}
 
 const DEFAULT_ROLL_OPTIONS: RollOptions = {
   maxLevel: 1,
@@ -26,9 +31,9 @@ const DEFAULT_UI_STATE: UIState = {
   lastRollOptions: DEFAULT_ROLL_OPTIONS,
 };
 
-export function loadTables(): LootTable[] {
+export function loadTables(system: GameSystem): LootTable[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey(system));
     if (!raw) return [];
 
     const parsed = JSON.parse(raw);
@@ -37,16 +42,25 @@ export function loadTables(): LootTable[] {
       return [];
     }
 
-    return parsed;
+    return parsed.map((table) => ({
+      ...table,
+      system,
+      items: Array.isArray(table.items)
+        ? table.items.map((item: LootItem) => ({
+            ...item,
+            type: item.type ?? "Aucun",
+          }))
+        : [],
+    }));
   } catch (error) {
     console.error("Erreur lors du chargement des tables :", error);
     return [];
   }
 }
 
-export function saveTables(tables: LootTable[]): void {
+export function saveTables(tables: LootTable[], system: GameSystem): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tables));
+    localStorage.setItem(getStorageKey(system), JSON.stringify(tables));
   } catch (error) {
     console.error("Erreur lors de la sauvegarde des tables :", error);
   }
@@ -178,26 +192,31 @@ function escapeCsvValue(value: string | number): string {
 
 export function exportSingleTableToCsv(table: LootTable): void {
   try {
-    const header = [
-      "name",
-      "url",
-      "level",
-      "category",
-      "rarity",
-      "valueAmount",
-      "valueCurrency",
-    ];
+    const isPf2e = table.system === "PF2E";
+    const header = isPf2e
+      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
 
     const rows = table.items.map((item) =>
-      [
-        escapeCsvValue(item.name),
-        escapeCsvValue(item.url),
-        escapeCsvValue(item.level),
-        escapeCsvValue(item.category),
-        escapeCsvValue(item.rarity),
-        escapeCsvValue(item.valueAmount),
-        escapeCsvValue(item.valueCurrency),
-      ].join(";")
+      isPf2e
+        ? [
+            escapeCsvValue(item.name),
+            escapeCsvValue(item.url),
+            escapeCsvValue(item.level),
+            escapeCsvValue(item.category),
+            escapeCsvValue(item.rarity),
+            escapeCsvValue(item.valueAmount),
+            escapeCsvValue(item.valueCurrency),
+          ].join(";")
+        : [
+            escapeCsvValue(item.name),
+            escapeCsvValue(item.url),
+            escapeCsvValue(item.category),
+            escapeCsvValue(item.type ?? "Aucun"),
+            escapeCsvValue(item.rarity),
+            escapeCsvValue(item.valueAmount),
+            escapeCsvValue(item.valueCurrency),
+          ].join(";")
     );
 
     const content = [header.join(";"), ...rows].join("\n");
@@ -317,7 +336,8 @@ async function readFileAsUtf8(file: File): Promise<string> {
 
 export async function importSingleTableFromCsv(
   file: File,
-  tableNameFromFile?: string
+  tableNameFromFile?: string,
+  system: GameSystem = "PF2E"
 ): Promise<LootTable> {
   const text = await readFileAsUtf8(file);
 
@@ -332,15 +352,10 @@ export async function importSingleTableFromCsv(
 
   const header = parseCsvLine(lines[0]);
 
-  const expectedHeader = [
-    "name",
-    "url",
-    "level",
-    "category",
-    "rarity",
-    "valueAmount",
-    "valueCurrency",
-  ];
+  const expectedHeader =
+    system === "PF2E"
+      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
 
   const normalizedHeader = header.map((value) => value.replace(/^\uFEFF/, ""));
 
@@ -355,17 +370,32 @@ export async function importSingleTableFromCsv(
   const items: LootItem[] = lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
 
-    if (values.length !== 7) {
+    if (values.length !== expectedHeader.length) {
       throw new Error("Une ligne CSV est invalide.");
+    }
+
+    if (system === "PF2E") {
+      return {
+        id: crypto.randomUUID(),
+        name: values[0],
+        url: values[1],
+        level: Number(values[2]) || 0,
+        category: (values[3] as LootItem["category"]) || "Autre",
+        type: "Aucun",
+        rarity: (values[4] as LootItem["rarity"]) || "Courant",
+        valueAmount: Number(values[5]) || 0,
+        valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+      };
     }
 
     return {
       id: crypto.randomUUID(),
       name: values[0],
       url: values[1],
-      level: Number(values[2]) || 0,
-      category: (values[3] as LootItem["category"]) || "Autre",
-      rarity: (values[4] as LootItem["rarity"]) || "Courant",
+      level: 0,
+      category: (values[2] as LootItem["category"]) || "Autre",
+      type: values[3] || "Aucun",
+      rarity: (values[4] as LootItem["rarity"]) || "Aucun",
       valueAmount: Number(values[5]) || 0,
       valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
     };
@@ -376,13 +406,17 @@ export async function importSingleTableFromCsv(
   return {
     id: crypto.randomUUID(),
     name: tableNameFromFile || file.name.replace(/\.csv$/i, "") || "Table importée",
+    system,
     items,
     createdAt: now,
     updatedAt: now,
   };
 }
 
-export async function importItemsFromCsvFile(file: File): Promise<LootItem[]> {
+export async function importItemsFromCsvFile(
+  file: File,
+  system: GameSystem = "PF2E"
+): Promise<LootItem[]> {
   const text = await readFileAsUtf8(file);
 
   const lines = text
@@ -395,15 +429,10 @@ export async function importItemsFromCsvFile(file: File): Promise<LootItem[]> {
   }
 
   const header = parseCsvLine(lines[0]);
-  const expectedHeader = [
-    "name",
-    "url",
-    "level",
-    "category",
-    "rarity",
-    "valueAmount",
-    "valueCurrency",
-  ];
+  const expectedHeader =
+    system === "PF2E"
+      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
 
   const normalizedHeader = header.map((value) => value.replace(/^\uFEFF/, ""));
 
@@ -418,17 +447,32 @@ export async function importItemsFromCsvFile(file: File): Promise<LootItem[]> {
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
 
-    if (values.length !== 7) {
+    if (values.length !== expectedHeader.length) {
       throw new Error("Une ligne CSV est invalide.");
+    }
+
+    if (system === "PF2E") {
+      return {
+        id: crypto.randomUUID(),
+        name: values[0],
+        url: values[1],
+        level: Number(values[2]) || 0,
+        category: (values[3] as LootItem["category"]) || "Autre",
+        type: "Aucun",
+        rarity: (values[4] as LootItem["rarity"]) || "Courant",
+        valueAmount: Number(values[5]) || 0,
+        valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+      };
     }
 
     return {
       id: crypto.randomUUID(),
       name: values[0],
       url: values[1],
-      level: Number(values[2]) || 0,
-      category: (values[3] as LootItem["category"]) || "Autre",
-      rarity: (values[4] as LootItem["rarity"]) || "Courant",
+      level: 0,
+      category: (values[2] as LootItem["category"]) || "Autre",
+      type: values[3] || "Aucun",
+      rarity: (values[4] as LootItem["rarity"]) || "Aucun",
       valueAmount: Number(values[5]) || 0,
       valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
     };

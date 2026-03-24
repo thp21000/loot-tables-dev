@@ -10,15 +10,22 @@ import type {
 } from "../types";
 
 function getRarityWeight(rarity: LootRarity): number {
+  if (rarity === "Aucun") return 100;
   if (rarity === "Courant") return 100;
+  if (rarity === "Commun (niv 1)") return 100;
   if (rarity === "Peu courant") return 40;
+  if (rarity === "Peu commun (niv 1)") return 40;
   if (rarity === "Rare") return 10;
+  if (rarity === "Très rare (niv 11)") return 3;
+  if (rarity === "Légendaire (niv 17)") return 1;
+  if (rarity === "Artéfact") return 0.5;
   return 1;
 }
 
 function getValueInCopper(item: LootItem): number {
   if (item.valueCurrency === "pc") return item.valueAmount * 1;
   if (item.valueCurrency === "pa") return item.valueAmount * 10;
+  if (item.valueCurrency === "pe") return item.valueAmount * 50;
   if (item.valueCurrency === "po") return item.valueAmount * 100;
   return item.valueAmount * 1000;
 }

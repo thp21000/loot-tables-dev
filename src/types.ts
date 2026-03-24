@@ -1,15 +1,36 @@
+export type GameSystem = "PF2E" | "DND5E";
+
 export type LootCategory =
   | "Arme"
+  | "Armes"
   | "Armure"
+  | "Armures"
   | "Consommable"
   | "Contenant"
   | "Equipement"
+  | "Équipement d'aventurier"
+  | "Outils"
+  | "Montures et véhicules"
+  | "Marchandises"
+  | "Objets magiques"
+  | "Poisons"
+  | "Herbes"
   | "Trésor"
   | "Autre";
 
-export type LootRarity = "Courant" | "Peu courant" | "Rare" | "Unique";
+  export type LootRarity =
+  | "Aucun"
+  | "Courant"
+  | "Peu courant"
+  | "Rare"
+  | "Unique"
+  | "Commun (niv 1)"
+  | "Peu commun (niv 1)"
+  | "Très rare (niv 11)"
+  | "Légendaire (niv 17)"
+  | "Artéfact";
 
-export type LootCurrency = "pc" | "pa" | "po" | "pp";
+export type LootCurrency = "pc" | "pa" | "pe" | "po" | "pp";
 
 export type ProbabilityMode =
   | "balanced"
@@ -47,6 +68,7 @@ export type LootItem = {
   url: string;
   level: number;
   category: LootCategory;
+  type: string;
   rarity: LootRarity;
   valueAmount: number;
   valueCurrency: LootCurrency;
@@ -55,6 +77,7 @@ export type LootItem = {
 export type LootTable = {
   id: string;
   name: string;
+  system: GameSystem;
   items: LootItem[];
   createdAt: string;
   updatedAt: string;
@@ -100,6 +123,7 @@ export type ValidatedRollSummaryItem = {
   url: string;
   level: number;
   category: LootCategory;
+  type: string;
   rarity: LootRarity;
   valueAmount: number;
   valueCurrency: LootCurrency;

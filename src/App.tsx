@@ -3,6 +3,7 @@ import type {
   ImportItemsResult,
   ImportMode,
   ItemSortMode,
+  GameSystem,
   LootItem,
   LootTable,
   OwlbearContextState,
@@ -32,8 +33,9 @@ import RollDialog from "./components/RollDialog";
 import ResultDialog from "./components/ResultDialog";
 import ConfirmModal from "./components/ConfirmModal";
 import AlertModal from "./components/AlertModal";
+import Modal from "./components/Modal";
 import { getAvailableCategories, rollLootTable } from "./utils/loot";
-import { buttons, colors, layout, typography } from "./styles/ui";
+import { buttons, colors, controls, layout, typography } from "./styles/ui";
 import {
   getOwlbearPlayerName,
   getOwlbearPlayerRole,
@@ -127,6 +129,7 @@ function buildValidatedSummary(
       url: item.url,
       level: item.level,
       category: item.category,
+      type: item.type,
       rarity: item.rarity,
       valueAmount: item.valueAmount,
       valueCurrency: item.valueCurrency,
@@ -154,10 +157,15 @@ function getRoleLabel(role: OwlbearPlayerRole): string {
   return "Inconnu";
 }
 
+type TransferAction = "import" | "export";
+type TransferScope = "global" | "table" | "new-table";
+type TransferFormat = "json" | "csv";
+
 export default function App() {
   const initialUIState = loadUIState();
+  const [currentSystem, setCurrentSystem] = useState<GameSystem>("PF2E");
 
-  const [tables, setTables] = useState<LootTable[]>(() => loadTables());
+  const [tables, setTables] = useState<LootTable[]>(() => loadTables("PF2E"));
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [rollingTableId, setRollingTableId] = useState<string | null>(null);
   const [lastRollTableId, setLastRollTableId] = useState<string | null>(null);
@@ -187,13 +195,44 @@ export default function App() {
   const [playerRole, setPlayerRole] = useState<OwlbearPlayerRole>("UNKNOWN");
   const [roomState, setLocalRoomState] = useState<OwlbearRoomState>({});
 
-  const importInputRef = useRef<HTMLInputElement | null>(null);
-  const importCsvInputRef = useRef<HTMLInputElement | null>(null);
+  const transferFileInputRef = useRef<HTMLInputElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const lastSystemForSaveRef = useRef<GameSystem>("PF2E");
+
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferAction, setTransferAction] = useState<TransferAction>("import");
+  const [transferScope, setTransferScope] = useState<TransferScope>("global");
+  const [transferFormat, setTransferFormat] = useState<TransferFormat>("json");
+  const [transferTableId, setTransferTableId] = useState<string>("");
+  const [transferImportMode, setTransferImportMode] = useState<ImportMode>("append");
 
   useEffect(() => {
-    saveTables(tables);
-  }, [tables]);
+    const hasSystemChanged = lastSystemForSaveRef.current !== currentSystem;
+    if (tables.length === 0) {
+      if (hasSystemChanged) {
+        lastSystemForSaveRef.current = currentSystem;
+        return;
+      }
+      saveTables([], currentSystem);
+      lastSystemForSaveRef.current = currentSystem;
+      return;
+    }
+    const targetSystem = tables[0].system;
+
+    if (!tables.every((table) => table.system === targetSystem)) {
+      return;
+    }
+
+    saveTables(tables, targetSystem);
+    lastSystemForSaveRef.current = currentSystem;
+  }, [tables, currentSystem]);
+
+  useEffect(() => {
+    setTables(loadTables(currentSystem));
+    setEditingTableId(null);
+    setExpandedTableIds([]);
+    setItemSortModes({});
+  }, [currentSystem]);
 
   useEffect(() => {
     saveUIState({
@@ -204,6 +243,17 @@ export default function App() {
       lastRollOptions,
     });
   }, [searchTerm, tableSortMode, expandedTableIds, itemSortModes, lastRollOptions]);
+
+  useEffect(() => {
+    if (tables.length === 0) {
+      setTransferTableId("");
+      return;
+    }
+
+    if (!transferTableId || !tables.some((table) => table.id === transferTableId)) {
+      setTransferTableId(tables[0].id);
+    }
+  }, [tables, transferTableId]);
 
   useEffect(() => {
     let unsubscribeRoom: (() => void) | null = null;
@@ -298,6 +348,7 @@ export default function App() {
     const newTable: LootTable = {
       id: crypto.randomUUID(),
       name: `Nouvelle table ${tables.length + 1}`,
+      system: currentSystem,
       items: [],
       createdAt: now,
       updatedAt: now,
@@ -435,7 +486,7 @@ export default function App() {
     mode: ImportMode
   ) {
     try {
-      const importedItems = await importItemsFromCsvFile(file);
+      const importedItemsForSystem = await importItemsFromCsvFile(file, currentSystem);
 
       const tableToUpdate = tables.find((table) => table.id === tableId);
 
@@ -446,7 +497,7 @@ export default function App() {
 
       const merged = mergeItemsWithDuplicateFilter(
         tableToUpdate.items,
-        importedItems,
+        importedItemsForSystem,
         mode
       );
 
@@ -542,17 +593,68 @@ export default function App() {
     setAlertMessage("Export JSON global effectué.");
   }
 
-  function handleClickImport() {
-    importInputRef.current?.click();
+  function getAvailableTransferFormats(
+    action: TransferAction,
+    scope: TransferScope
+  ): TransferFormat[] {
+    if (action === "export" && scope === "global") {
+      return ["json"];
+    }
+
+    if (action === "import" && scope === "table") {
+      return ["csv"];
+    }
+
+    if (action === "import" && scope === "new-table") {
+      return ["json", "csv"];
+    }
+
+    if (action === "export" && scope === "table") {
+      return ["json", "csv"];
+    }
+
+    return ["json", "csv"];
   }
 
-  function handleClickImportCsv() {
-    importCsvInputRef.current?.click();
+  function normalizeTransferFormat(
+    action: TransferAction,
+    scope: TransferScope,
+    format: TransferFormat
+  ): TransferFormat {
+    const available = getAvailableTransferFormats(action, scope);
+    return available.includes(format) ? format : available[0];
   }
 
-  async function handleImportFileChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
+  function openTransferModal() {
+    setTransferAction("import");
+    setTransferScope("global");
+    setTransferFormat("json");
+    setTransferTableId((prev) => (prev ? prev : tables[0]?.id ?? ""));
+    setTransferImportMode("append");
+    setIsTransferModalOpen(true);
+  }
+
+  function closeTransferModal() {
+    setIsTransferModalOpen(false);
+  }
+
+  function handleTransferActionChange(action: TransferAction) {
+    const nextScope =
+      action === "export" && transferScope === "new-table"
+        ? "global"
+        : transferScope;
+
+    setTransferAction(action);
+    setTransferScope(nextScope);
+    setTransferFormat((prev) => normalizeTransferFormat(action, nextScope, prev));
+  }
+
+  function handleTransferScopeChange(scope: TransferScope) {
+    setTransferScope(scope);
+    setTransferFormat((prev) => normalizeTransferFormat(transferAction, scope, prev));
+  }
+
+  async function handleTransferFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -560,38 +662,103 @@ export default function App() {
     }
 
     try {
-      const importedTables = await importTablesFromFile(file);
-      const mergedTables = mergeImportedTables(tables, importedTables);
+      if (transferFormat === "json" && transferScope === "global") {
+        const importedTables = await importTablesFromFile(file);
+        const importedTablesForSystem = importedTables.map((table) => ({
+          ...table,
+          system: currentSystem,
+          items: table.items.map((item) => ({
+            ...item,
+            type: item.type ?? "Aucun",
+          })),
+        }));
+        const mergedTables = mergeImportedTables(tables, importedTablesForSystem);
+        setTables(mergedTables);
+        setAlertMessage(`${importedTables.length} table(s) importée(s) avec succès.`);
+      } else if (transferFormat === "json" && transferScope === "new-table") {
+        const importedTables = await importTablesFromFile(file);
+        const firstImportedTable = importedTables[0];
 
-      setTables(mergedTables);
-      setAlertMessage(`${importedTables.length} table(s) importée(s) avec succès.`);
+        if (!firstImportedTable) {
+          setAlertMessage("Aucune table trouvée dans ce JSON.");
+          return;
+        }
+
+        const now = new Date().toISOString();
+        const newTable: LootTable = {
+          ...firstImportedTable,
+          system: currentSystem,
+          id: crypto.randomUUID(),
+          items: firstImportedTable.items.map((item) => ({
+            ...item,
+            type: item.type ?? "Aucun",
+          })),
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        setTables((prev) => [...prev, newTable]);
+        setAlertMessage(`Nouvelle table créée depuis JSON : ${newTable.name}`);
+      } else if (transferFormat === "csv" && transferScope === "global") {
+        const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
+        setTables((prev) => [...prev, importedTable]);
+        setAlertMessage(`Table CSV importée : ${importedTable.name}`);
+      } else if (transferFormat === "csv" && transferScope === "new-table") {
+        const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
+        setTables((prev) => [...prev, importedTable]);
+        setAlertMessage(`Nouvelle table créée depuis CSV : ${importedTable.name}`);
+      } else if (transferFormat === "csv" && transferScope === "table") {
+        if (!transferTableId) {
+          setAlertMessage("Sélectionne une table cible pour l’import CSV.");
+          return;
+        }
+
+        await handleImportCsvIntoTable(transferTableId, file, transferImportMode);
+      } else {
+        setAlertMessage("Cette combinaison d’import n’est pas disponible.");
+      }
     } catch (error) {
       console.error(error);
       setAlertMessage("Le fichier importé n’est pas valide.");
     } finally {
       event.target.value = "";
+      setIsTransferModalOpen(false);
     }
   }
 
-  async function handleImportCsvFileChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
+  function handleExecuteTransfer() {
+    if (transferAction === "export") {
+      if (transferScope === "global" && transferFormat === "json") {
+        handleExportTables();
+        setIsTransferModalOpen(false);
+        return;
+      }
 
-    if (!file) {
+      if (!transferTableId) {
+        setAlertMessage("Sélectionne une table pour l’export.");
+        return;
+      }
+
+      if (transferFormat === "json") {
+        handleExportSingleTableJson(transferTableId);
+      } else {
+        handleExportSingleTableCsv(transferTableId);
+      }
+
+      setIsTransferModalOpen(false);
       return;
     }
 
-    try {
-      const importedTable = await importSingleTableFromCsv(file);
-      setTables((prev) => [...prev, importedTable]);
-      setAlertMessage(`Table CSV importée : ${importedTable.name}`);
-    } catch (error) {
-      console.error(error);
-      setAlertMessage("Le fichier CSV importé n’est pas valide.");
-    } finally {
-      event.target.value = "";
+    const input = transferFileInputRef.current;
+
+    if (!input) {
+      setAlertMessage("Impossible d’ouvrir le sélecteur de fichiers.");
+      return;
     }
+
+    input.accept =
+      transferFormat === "json" ? ".json,application/json" : ".csv,text/csv";
+    input.click();
   }
 
   const rollingTable =
@@ -634,34 +801,35 @@ export default function App() {
 
           {canManageTables ? (
             <div style={{ ...layout.topBar, marginBottom: "14px" }}>
+              <select
+                value={currentSystem}
+                onChange={(event) => {
+                  const nextSystem = event.target.value as GameSystem;
+
+                  if (nextSystem === currentSystem) {
+                    return;
+                  }
+
+                  setCurrentSystem(nextSystem);
+                }}
+                style={{ ...controls.select, minWidth: "200px", width: "200px" }}
+              >
+                <option value="PF2E">Pathfinder 2e</option>
+                <option value="DND5E">DnD 5e</option>
+              </select>
               <button onClick={handleCreateTable} style={buttons.primary}>
                 Créer une nouvelle table
               </button>
-              <button onClick={handleExportTables} style={buttons.secondary}>
-                Exporter tout en JSON
-              </button>
-              <button onClick={handleClickImport} style={buttons.secondary}>
-                Importer JSON global
-              </button>
-              <button onClick={handleClickImportCsv} style={buttons.secondary}>
-                Importer un CSV en nouvelle table
+              <button onClick={openTransferModal} style={buttons.secondary}>
+                Importer / Exporter
               </button>
             </div>
           ) : null}
 
           <input
-            ref={importInputRef}
+            ref={transferFileInputRef}
             type="file"
-            accept=".json,application/json"
-            onChange={handleImportFileChange}
-            style={{ display: "none" }}
-          />
-
-          <input
-            ref={importCsvInputRef}
-            type="file"
-            accept=".csv,text/csv"
-            onChange={handleImportCsvFileChange}
+            onChange={handleTransferFileChange}
             style={{ display: "none" }}
           />
 
@@ -674,11 +842,8 @@ export default function App() {
               onRoll={handleRollTable}
               onQuickRoll={handleQuickRollTable}
               onDuplicate={handleDuplicateTable}
-              onExportTableJson={handleExportSingleTableJson}
-              onExportTableCsv={handleExportSingleTableCsv}
               onSaveTable={handleSaveEditedTable}
               onCancelEdit={handleCancelEdit}
-              onImportCsvIntoTable={handleImportCsvIntoTable}
               onShowAlert={(message) => setAlertMessage(message)}
               searchTerm={searchTerm}
               onSearchTermChange={setSearchTerm}
@@ -689,6 +854,7 @@ export default function App() {
               itemSortModes={itemSortModes}
               onItemSortModesChange={setItemSortModes}
               canManageTables={canManageTables}
+              currentSystem={currentSystem}
             />
 
             <div
@@ -742,6 +908,103 @@ export default function App() {
             </div>
           </div>
         </div>
+      
+      <Modal
+        isOpen={isTransferModalOpen}
+        title="Importer / Exporter"
+        onClose={closeTransferModal}
+        footer={
+          <>
+            <button onClick={handleExecuteTransfer} style={buttons.primary}>
+              Continuer
+            </button>
+            <button onClick={closeTransferModal} style={buttons.secondary}>
+              Annuler
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: "grid", gap: "12px" }}>
+          <div>
+            <label style={typography.label}>Action</label>
+            <select
+              value={transferAction}
+              onChange={(event) =>
+                handleTransferActionChange(event.target.value as TransferAction)
+              }
+              style={controls.select}
+            >
+              <option value="import">Importer</option>
+              <option value="export">Exporter</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={typography.label}>Portée</label>
+            <select
+              value={transferScope}
+              onChange={(event) =>
+                handleTransferScopeChange(event.target.value as TransferScope)
+              }
+              style={controls.select}
+            >
+              <option value="global">Global (toutes les tables)</option>
+              <option value="table">Table précise</option>
+              {transferAction === "import" ? (
+                <option value="new-table">Nouvelle table</option>
+              ) : null}
+            </select>
+          </div>
+
+          <div>
+            <label style={typography.label}>Type de fichier</label>
+            <select
+              value={transferFormat}
+              onChange={(event) => setTransferFormat(event.target.value as TransferFormat)}
+              style={controls.select}
+            >
+              {getAvailableTransferFormats(transferAction, transferScope).map((format) => (
+                <option key={format} value={format}>
+                  {format.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {transferScope === "table" ? (
+            <div>
+              <label style={typography.label}>Table cible</label>
+              <select
+                value={transferTableId}
+                onChange={(event) => setTransferTableId(event.target.value)}
+                style={controls.select}
+              >
+                {tables.map((table) => (
+                  <option key={table.id} value={table.id}>
+                    {table.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {transferAction === "import" &&
+          transferScope === "table" &&
+          transferFormat === "csv" ? (
+            <div>
+              <label style={typography.label}>Mode d’import CSV</label>
+              <select
+                value={transferImportMode}
+                onChange={(event) => setTransferImportMode(event.target.value as ImportMode)}
+                style={controls.select}
+              >
+                <option value="append">Ajouter à la table</option>
+                <option value="replace">Remplacer la table</option>
+              </select>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
 
       <RollDialog
         isOpen={rollingTable !== null}
