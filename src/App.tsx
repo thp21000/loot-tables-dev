@@ -50,6 +50,7 @@ import {
   subscribeToRoomState,
   subscribeToValidatedRolls,
 } from "./owlbear";
+import { useI18n } from "./i18n";
 
 function getItemSignature(item: Omit<LootItem, "id"> | LootItem): string {
   return [
@@ -137,10 +138,13 @@ function buildValidatedSummary(
   };
 }
 
-function formatValidatedRollMessage(summary: ValidatedRollSummary): string {
+function formatValidatedRollMessage(
+  summary: ValidatedRollSummary,
+  roleText: string
+): string {
   const prefix = summary.validatedBy
-    ? `${summary.validatedBy} a validé un tirage`
-    : "Un tirage a été validé";
+  ? `${summary.validatedBy} ${roleText}`
+  : roleText;
 
   if (summary.items.length === 0) {
     return `${prefix} : aucun objet trouvé.`;
@@ -151,10 +155,13 @@ function formatValidatedRollMessage(summary: ValidatedRollSummary): string {
   return `${prefix} : ${itemList}`;
 }
 
-function getRoleLabel(role: OwlbearPlayerRole): string {
-  if (role === "GM") return "MJ";
-  if (role === "PLAYER") return "Joueur";
-  return "Inconnu";
+function getRoleLabel(
+  role: OwlbearPlayerRole,
+  t: (key: string) => string
+): string {
+  if (role === "GM") return t("app.role.gm");
+  if (role === "PLAYER") return t("app.role.player");
+  return t("app.role.unknown");
 }
 
 type TransferAction = "import" | "export";
@@ -162,6 +169,7 @@ type TransferScope = "global" | "table" | "new-table";
 type TransferFormat = "json" | "csv";
 
 export default function App() {
+  const { language, setLanguage, t } = useI18n();
   const initialUIState = loadUIState();
   const [currentSystem, setCurrentSystem] = useState<GameSystem>("PF2E");
 
@@ -280,7 +288,7 @@ export default function App() {
       });
 
       unsubscribeBroadcast = subscribeToValidatedRolls((summary) => {
-        void notifyInfo(formatValidatedRollMessage(summary));
+        void notifyInfo(formatValidatedRollMessage(summary, "a validé un tirage"));
         void openValidatedRollModal(summary);
       });
     }
@@ -405,7 +413,7 @@ export default function App() {
 
   function handleRollTable(tableId: string) {
     if (playerRole !== "GM") {
-      setAlertMessage("Seul le MJ peut lancer un tirage.");
+      setAlertMessage(t("app.onlyGmRoll"));
       return;
     }
     setRollingTableId(tableId);
@@ -425,7 +433,7 @@ export default function App() {
 
   function handleQuickRollTable(tableId: string) {
     if (playerRole !== "GM") {
-      setAlertMessage("Seul le MJ peut lancer un tirage.");
+      setAlertMessage(t("app.onlyGmRoll"));
       return;
     }
 
@@ -552,7 +560,7 @@ export default function App() {
 
   async function handleValidateRoll() {
     if (playerRole !== "GM") {
-      setAlertMessage("Seul le MJ peut valider un tirage.");
+      setAlertMessage(t("app.onlyGmValidate"));
       return;
     }
 
@@ -564,8 +572,8 @@ export default function App() {
     const summary = buildValidatedSummary(rollResult, validatedBy);
 
     await publishValidatedRoll(summary);
-    await notifySuccess(formatValidatedRollMessage(summary));
-    setAlertMessage("Tirage validé et partagé à tous.");
+    await notifySuccess(formatValidatedRollMessage(summary, "a validé un tirage"));
+    setAlertMessage(t("app.rollShared"));
   }
 
   function handleCloseResultDialog() {
@@ -590,7 +598,7 @@ export default function App() {
 
   function handleExportTables() {
     exportTablesToJson(tables);
-    setAlertMessage("Export JSON global effectué.");
+    setAlertMessage(t("app.globalExportDone"));
   }
 
   function getAvailableTransferFormats(
@@ -709,17 +717,17 @@ export default function App() {
         setAlertMessage(`Nouvelle table créée depuis CSV : ${importedTable.name}`);
       } else if (transferFormat === "csv" && transferScope === "table") {
         if (!transferTableId) {
-          setAlertMessage("Sélectionne une table cible pour l’import CSV.");
+          setAlertMessage(t("app.targetTableRequiredImport"));
           return;
         }
 
         await handleImportCsvIntoTable(transferTableId, file, transferImportMode);
       } else {
-        setAlertMessage("Cette combinaison d’import n’est pas disponible.");
+        setAlertMessage(t("app.transfer.unavailable"));
       }
     } catch (error) {
       console.error(error);
-      setAlertMessage("Le fichier importé n’est pas valide.");
+      setAlertMessage(t("app.invalidImportedFile"));
     } finally {
       event.target.value = "";
       setIsTransferModalOpen(false);
@@ -735,7 +743,7 @@ export default function App() {
       }
 
       if (!transferTableId) {
-        setAlertMessage("Sélectionne une table pour l’export.");
+        setAlertMessage(t("app.targetTableRequiredExport"));
         return;
       }
 
@@ -752,7 +760,7 @@ export default function App() {
     const input = transferFileInputRef.current;
 
     if (!input) {
-      setAlertMessage("Impossible d’ouvrir le sélecteur de fichiers.");
+      setAlertMessage(t("app.transfer.openFilePickerError"));
       return;
     }
 
@@ -791,12 +799,10 @@ export default function App() {
           background: colors.pageBg,
         }}
       >
-          <h1 style={{ ...typography.pageTitle, marginBottom: "4px" }}>
-            Loot Tables
-          </h1>
+          <h1 style={{ ...typography.pageTitle, marginBottom: "4px" }}>{t("app.title")}</h1>
 
           <p style={{ ...typography.pageSubtitle, marginBottom: "14px" }}>
-            Nombre de tables enregistrées : {tables.length}
+          {t("app.subtitle")} ({tables.length})
           </p>
 
           {canManageTables ? (
@@ -817,11 +823,19 @@ export default function App() {
                 <option value="PF2E">Pathfinder 2e</option>
                 <option value="DND5E">DnD 5e</option>
               </select>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as "fr" | "en")}
+                style={{ ...controls.select, minWidth: "140px", width: "140px" }}
+              >
+                <option value="fr">{t("lang.fr")}</option>
+                <option value="en">{t("lang.en")}</option>
+              </select>
               <button onClick={handleCreateTable} style={buttons.primary}>
-                Créer une nouvelle table
+              {t("app.createTable")}
               </button>
               <button onClick={openTransferModal} style={buttons.secondary}>
-                Importer / Exporter
+              {t("app.transfer")}
               </button>
             </div>
           ) : null}
@@ -835,6 +849,7 @@ export default function App() {
 
 <div style={{ width: "fit-content", maxWidth: "100%" }}>
             <TableList
+              key={`table-list-${language}-${currentSystem}`}
               tables={tables}
               editingTableId={editingTableId}
               onEdit={handleEditTable}
@@ -879,8 +894,14 @@ export default function App() {
                   gap: "6px 14px",
                 }}
               >
-                <span>Mode : {getRoleLabel(playerRole)}</span>
-                <span>Owlbear : {owlbearContext.isOwlbearReady ? "connecté" : "initialisation"}</span>
+                <span>Mode : {getRoleLabel(playerRole, t)}</span>
+                <span>
+                  {t("app.owlbear.status", {
+                    status: owlbearContext.isOwlbearReady
+                      ? t("app.owlbear.connected")
+                      : t("app.owlbear.initializing"),
+                  })}
+                </span>
                 {owlbearContext.roomId ? (
                   <span style={{ overflowWrap: "anywhere" }}>
                     Room : {owlbearContext.roomId}
@@ -898,11 +919,17 @@ export default function App() {
               >
                 {roomState.lastOpenedAt ? (
                   <span>
-                    Dernière ouverture : {new Date(roomState.lastOpenedAt).toLocaleString()}
+                    {t("footer.lastOpened", {
+                      date: new Date(roomState.lastOpenedAt).toLocaleString(),
+                    })}
                   </span>
                 ) : null}
                 {roomState.lastValidatedRoll ? (
-                  <span>Dernier gain : {roomState.lastValidatedRoll.tableName}</span>
+                  <span>
+                  {t("footer.lastGain", {
+                    tableName: roomState.lastValidatedRoll.tableName,
+                  })}
+                </span>
                 ) : null}
               </div>
             </div>
@@ -911,22 +938,24 @@ export default function App() {
       
       <Modal
         isOpen={isTransferModalOpen}
-        title="Importer / Exporter"
+        title={t("app.transfer.title")}
         onClose={closeTransferModal}
         footer={
           <>
             <button onClick={handleExecuteTransfer} style={buttons.primary}>
-              Continuer
+            {transferAction === "import"
+                ? t("app.transfer.chooseFile")
+                : t("app.transfer.download")}
             </button>
             <button onClick={closeTransferModal} style={buttons.secondary}>
-              Annuler
+            {t("common.cancel")}
             </button>
           </>
         }
       >
         <div style={{ display: "grid", gap: "12px" }}>
           <div>
-            <label style={typography.label}>Action</label>
+            <label style={typography.label}>{t("app.transfer.action")}</label>
             <select
               value={transferAction}
               onChange={(event) =>
@@ -934,13 +963,13 @@ export default function App() {
               }
               style={controls.select}
             >
-              <option value="import">Importer</option>
-              <option value="export">Exporter</option>
+              <option value="import">{t("app.transfer.import")}</option>
+              <option value="export">{t("app.transfer.export")}</option>
             </select>
           </div>
 
           <div>
-            <label style={typography.label}>Portée</label>
+            <label style={typography.label}>{t("app.transfer.scope")}</label>
             <select
               value={transferScope}
               onChange={(event) =>
@@ -948,16 +977,16 @@ export default function App() {
               }
               style={controls.select}
             >
-              <option value="global">Global (toutes les tables)</option>
-              <option value="table">Table précise</option>
+              <option value="global">{t("app.transfer.scope.global")}</option>
+              <option value="table">{t("app.transfer.scope.table")}</option>
               {transferAction === "import" ? (
-                <option value="new-table">Nouvelle table</option>
+                <option value="new-table">{t("app.transfer.scope.newTable")}</option>
               ) : null}
             </select>
           </div>
 
           <div>
-            <label style={typography.label}>Type de fichier</label>
+            <label style={typography.label}>{t("app.transfer.format")}</label>
             <select
               value={transferFormat}
               onChange={(event) => setTransferFormat(event.target.value as TransferFormat)}
@@ -973,7 +1002,7 @@ export default function App() {
 
           {transferScope === "table" ? (
             <div>
-              <label style={typography.label}>Table cible</label>
+              <label style={typography.label}>{t("app.transfer.table")}</label>
               <select
                 value={transferTableId}
                 onChange={(event) => setTransferTableId(event.target.value)}
@@ -992,14 +1021,14 @@ export default function App() {
           transferScope === "table" &&
           transferFormat === "csv" ? (
             <div>
-              <label style={typography.label}>Mode d’import CSV</label>
+              <label style={typography.label}>{t("app.transfer.importMode")}</label>
               <select
                 value={transferImportMode}
                 onChange={(event) => setTransferImportMode(event.target.value as ImportMode)}
                 style={controls.select}
               >
-                <option value="append">Ajouter à la table</option>
-                <option value="replace">Remplacer la table</option>
+                <option value="append">{t("app.transfer.mode.append")}</option>
+                <option value="replace">{t("app.transfer.mode.replace")}</option>
               </select>
             </div>
           ) : null}
@@ -1007,6 +1036,7 @@ export default function App() {
       </Modal>
 
       <RollDialog
+        key={`roll-dialog-${language}`}
         isOpen={rollingTable !== null}
         tableName={rollingTable?.name ?? ""}
         availableCategories={
@@ -1019,6 +1049,7 @@ export default function App() {
       />
 
       <ResultDialog
+        key={`result-dialog-${language}`}
         isOpen={rollResult !== null}
         result={rollResult}
         history={rollHistory}
@@ -1031,17 +1062,17 @@ export default function App() {
 
       <ConfirmModal
         isOpen={tableIdToDelete !== null}
-        title="Supprimer la table"
-        message="Voulez-vous vraiment supprimer cette table ?"
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t("app.delete.title")}
+        message={t("app.delete.message")}
+        confirmLabel={t("app.delete.confirm")}
+        cancelLabel={t("common.cancel")}
         onConfirm={confirmDeleteTable}
         onCancel={cancelDeleteTable}
       />
 
       <AlertModal
         isOpen={alertMessage !== null}
-        title="Information"
+        title={t("app.info.title")}
         message={alertMessage ?? ""}
         onClose={() => setAlertMessage(null)}
       />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { LootCategory, ProbabilityMode, RollOptions } from "../types";
 import { buttons, controls, colors, typography } from "../styles/ui";
+import { useI18n } from "../i18n";
 
 type RollDialogProps = {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function RollDialog({
   onConfirm,
   onShowAlert,
 }: RollDialogProps) {
+  const { t } = useI18n();
   const [maxLevel, setMaxLevel] = useState(1);
   const [quantity, setQuantity] = useState(1);
   const [selectedCategories, setSelectedCategories] = useState<LootCategory[]>(
@@ -50,12 +52,12 @@ export default function RollDialog({
 
   function handleSubmit() {
     if (maxLevel < 0) {
-      onShowAlert("Le niveau max doit être supérieur ou égal à 0.");
+      onShowAlert(t("roll.maxLevelError"));
       return;
     }
 
     if (quantity <= 0) {
-      onShowAlert("La quantité doit être supérieure à 0.");
+      onShowAlert(t("roll.quantityError"));
       return;
     }
 
@@ -96,7 +98,7 @@ export default function RollDialog({
           padding: "22px",
         }}
       >
-        <h2 style={typography.cardTitle}>Lancer la table</h2>
+        <h2 style={typography.cardTitle}>{t("roll.title")}</h2>
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "18px" }}>
           {tableName}
@@ -104,7 +106,7 @@ export default function RollDialog({
 
         <div style={{ display: "grid", gap: "16px" }}>
           <div>
-            <label style={typography.label}>Niveau maximum</label>
+          <label style={typography.label}>{t("roll.maxLevel")}</label>
             <input
               type="number"
               min="0"
@@ -115,7 +117,7 @@ export default function RollDialog({
           </div>
 
           <div>
-            <label style={typography.label}>Nombre d’objets à tirer</label>
+          <label style={typography.label}>{t("roll.quantity")}</label>
             <input
               type="number"
               min="1"
@@ -126,7 +128,7 @@ export default function RollDialog({
           </div>
 
           <div>
-            <label style={typography.label}>Mode de probabilité</label>
+          <label style={typography.label}>{t("roll.categories")}</label>
             <select
               value={probabilityMode}
               onChange={(event) =>
@@ -172,7 +174,7 @@ export default function RollDialog({
                 marginBottom: 0,
               }}
             >
-              Si aucune catégorie n’est sélectionnée, toutes les catégories sont autorisées.
+              {t("roll.noCategoryHint")}
             </p>
           </div>
 
@@ -191,7 +193,7 @@ export default function RollDialog({
                 checked={allowDuplicates}
                 onChange={(event) => setAllowDuplicates(event.target.checked)}
               />
-              Autoriser les doublons
+              {t("roll.allowDuplicates")}
             </label>
           </div>
         </div>
@@ -206,10 +208,10 @@ export default function RollDialog({
           }}
         >
           <button onClick={handleSubmit} style={buttons.primary}>
-            Lancer
+          {t("roll.submit")}
           </button>
           <button onClick={onClose} style={buttons.secondary}>
-            Annuler
+          {t("common.cancel")}
           </button>
         </div>
       </div>

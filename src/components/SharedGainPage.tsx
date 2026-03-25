@@ -11,6 +11,7 @@ import {
   waitForOwlbearReady,
 } from "../owlbear";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
+import { useI18n } from "../i18n";
 
 function getRarityColor(rarity: string): string {
   if (rarity === "Courant") return "#9ca3af";
@@ -19,8 +20,11 @@ function getRarityColor(rarity: string): string {
   return "#a78bfa";
 }
 
-function getRoleTitle(role: OwlbearPlayerRole): string {
-  return role === "GM" ? "Butin partagé" : "Trésor découvert";
+function getRoleTitle(
+  role: OwlbearPlayerRole,
+  t: (key: string) => string
+): string {
+  return role === "GM" ? t("gain.shared") : t("gain.discovered");
 }
 
 function ItemName({
@@ -52,6 +56,7 @@ function ItemName({
 }
 
 export default function SharedGainPage() {
+  const { t } = useI18n();
   const [playerRole, setPlayerRole] = useState<OwlbearPlayerRole>("UNKNOWN");
   const [roomState, setRoomState] = useState<OwlbearRoomState>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -154,23 +159,23 @@ export default function SharedGainPage() {
         }}
       >
         <h1 style={{ ...typography.pageTitle, marginBottom: "16px" }}>
-          {summary ? getRoleTitle(playerRole) : "Butin"}
+          {summary ? getRoleTitle(playerRole, t) : t("gain.title")}
         </h1>
 
         {isLoading ? (
           <div style={{ textAlign: "center" }}>
-            <p style={typography.pageSubtitle}>Chargement du butin…</p>
+            <p style={typography.pageSubtitle}>{t("gain.loading")}</p>
           </div>
         ) : !summary ? (
           <div style={{ textAlign: "center" }}>
-            <p style={typography.pageSubtitle}>Aucun gain validé à afficher.</p>
+            <p style={typography.pageSubtitle}>{t("gain.empty")}</p>
             <button
               onClick={() => {
                 void closeValidatedRollModal();
               }}
               style={buttons.primary}
             >
-              Fermer
+              {t("common.close")}
             </button>
           </div>
         ) : (
@@ -186,7 +191,7 @@ export default function SharedGainPage() {
                   background: colors.panelBg,
                 }}
               >
-                Aucun objet trouvé.
+                {t("gain.noItem")}
               </div>
             ) : (
               <div
@@ -258,7 +263,7 @@ export default function SharedGainPage() {
                 }}
                 style={buttons.primary}
               >
-                Fermer
+                {t("common.close")}
               </button>
             </div>
           </>

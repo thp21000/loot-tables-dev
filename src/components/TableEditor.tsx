@@ -8,6 +8,8 @@ import type {
   LootTable,
 } from "../types";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
+import { useI18n } from "../i18n";
+import { tCategory, tRarity, tType } from "../i18n/gameTerms";
 
 type TableEditorProps = {
   table: LootTable;
@@ -21,6 +23,8 @@ type EditableLootItem = LootItem & {
   isEditing: boolean;
   isNew?: boolean;
 };
+// Ces constantes restent dans la langue canonique des données.
+// L’affichage est localisé via tCategory/tRarity/tType dans le rendu.
 
 const PF2E_CATEGORY_OPTIONS: LootCategory[] = [
   "Arme",
@@ -180,6 +184,7 @@ export default function TableEditor({
   onCancel,
   onShowAlert,
 }: TableEditorProps) {
+  const { t, language } = useI18n();
   const categoryOptions =
     currentSystem === "DND5E" ? DND5E_CATEGORY_OPTIONS : PF2E_CATEGORY_OPTIONS;
   const rarityOptions =
@@ -249,12 +254,12 @@ export default function TableEditor({
     }
 
     if (item.level < 0 || Number.isNaN(item.level)) {
-      onShowAlert("Le niveau doit être un nombre valide.");
+      onShowAlert(t("editor.error.levelNumber"));
       return;
     }
 
     if (item.valueAmount < 0 || Number.isNaN(item.valueAmount)) {
-      onShowAlert("La valeur doit être un nombre valide.");
+      onShowAlert(t("editor.error.valueNumber"));
       return;
     }
 
@@ -298,7 +303,7 @@ export default function TableEditor({
     );
 
     if (importedItems.length === 0) {
-      onShowAlert("Aucune ligne exploitable à importer.");
+      onShowAlert(t("editor.error.noPasteData"));
       return;
     }
 
@@ -313,9 +318,7 @@ export default function TableEditor({
     setItems((prev) => [...prev, ...importedEditableItems]);
     setPasteArea("");
     setIsPasteAreaOpen(false);
-    onShowAlert(
-      `${importedEditableItems.length} objet(s) ajouté(s) depuis le collage.`
-    );
+    onShowAlert(t("editor.pasteImported", { count: importedEditableItems.length }));
   }
 
   function handleSaveTable() {
@@ -364,7 +367,7 @@ export default function TableEditor({
             <h2 style={{ ...typography.cardTitle, margin: 0 }}>{name}</h2>
             <button
               onClick={() => setIsEditingName(true)}
-              title="Modifier le nom"
+              title={t("editor.alt.edit")}
               style={buttons.icon}
             >
               ✏️
@@ -386,7 +389,7 @@ export default function TableEditor({
 
       <div style={{ ...layout.centerRow, marginBottom: "16px" }}>
         <button onClick={handleAddItem} style={buttons.primary}>
-          Ajouter une ligne d’objet
+        {t("editor.addRow")}
         </button>
       </div>
 
@@ -397,17 +400,16 @@ export default function TableEditor({
             style={buttons.secondary}
           >
             {isPasteAreaOpen
-              ? "▼ Masquer le collage multiple depuis Excel"
-              : "▶ Afficher le collage multiple depuis Excel"}
+              ? t("editor.pasteToggleHide")
+              : t("editor.pasteToggleShow")}
           </button>
         </div>
 
         {isPasteAreaOpen && (
           <div style={{ marginTop: "12px" }}>
-            <h3 style={typography.cardTitle}>Collage multiple depuis Excel</h3>
+            <h3 style={typography.cardTitle}>{t("editor.pasteTitle")}</h3>
             <p style={{ ...typography.pageSubtitle, marginBottom: "12px" }}>
-              Colle des lignes tabulées dans cet ordre : nom, url, level,
-              category, rarity, valueAmount, valueCurrency
+            {t("editor.pasteHelp")}
             </p>
 
             <textarea
@@ -419,7 +421,7 @@ export default function TableEditor({
 
             <div style={{ marginTop: "10px", textAlign: "center" }}>
               <button onClick={handlePasteImport} style={buttons.primary}>
-                Importer le collage dans cette table
+              {t("editor.pasteImport")}
               </button>
             </div>
           </div>
@@ -440,14 +442,14 @@ export default function TableEditor({
           textAlign: "center",
         }}
       >
-        <div>Nom</div>
-        <div>Fiche</div>
-        {currentSystem === "PF2E" ? <div>Niveau</div> : null}
-        <div>Catégorie</div>
-        {currentSystem === "DND5E" ? <div>Type</div> : null}
-        <div>Rareté</div>
-        <div>Montant</div>
-        <div>Actions</div>
+        <div>{t("column.name")}</div>
+        <div>{t("column.sheet")}</div>
+        {currentSystem === "PF2E" ? <div>{t("column.level")}</div> : null}
+        <div>{t("column.category")}</div>
+        {currentSystem === "DND5E" ? <div>{t("column.type")}</div> : null}
+        <div>{t("column.rarity")}</div>
+        <div>{t("column.amount")}</div>
+        <div>{t("column.actions")}</div>
       </div>
 
       <div style={{ display: "grid", gap: "8px" }}>
@@ -469,7 +471,7 @@ export default function TableEditor({
                 }}
               >
                 <input
-                  placeholder="Nom"
+                  placeholder={t("editor.placeholder.name")}
                   value={item.name}
                   onChange={(event) =>
                     handleItemChange(item.id, "name", event.target.value)
@@ -478,7 +480,7 @@ export default function TableEditor({
                 />
 
                 <input
-                  placeholder="Lien fiche"
+                  placeholder={t("editor.placeholder.url")}
                   value={item.url}
                   onChange={(event) =>
                     handleItemChange(item.id, "url", event.target.value)
@@ -515,7 +517,7 @@ export default function TableEditor({
                 >
                   {categoryOptions.map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {tCategory(option, language)}
                     </option>
                   ))}
                 </select>
@@ -530,7 +532,7 @@ export default function TableEditor({
                   >
                     {DND5E_TYPE_OPTIONS.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {tType(option, language)}
                       </option>
                     ))}
                   </select>
@@ -549,7 +551,7 @@ export default function TableEditor({
                 >
                   {rarityOptions.map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {tRarity(option, language)}
                     </option>
                   ))}
                 </select>
@@ -590,14 +592,16 @@ export default function TableEditor({
 
                 <div style={layout.centerRow}>
                   <button
-                    title="Valider"
+                    title={t("common.save")}
+                    aria-label={t("common.save")}
                     onClick={() => handleValidateItem(item.id)}
                     style={buttons.primary}
                   >
                     ✅
                   </button>
                   <button
-                    title="Supprimer"
+                    title={t("editor.alt.delete")}
+                    aria-label={t("editor.alt.delete")}
                     onClick={() => handleDeleteItem(item.id)}
                     style={buttons.danger}
                   >
@@ -625,7 +629,7 @@ export default function TableEditor({
               }}
             >
               <div>
-                <strong>{item.name || "Sans nom"}</strong>
+                <strong>{item.name || t("common.unnamed")}</strong>
               </div>
 
               <div>
@@ -636,29 +640,29 @@ export default function TableEditor({
                     rel="noreferrer"
                     style={{ color: colors.primary }}
                   >
-                    Fiche
+                    {t("column.sheet")}
                   </a>
                 ) : (
                   "—"
                 )}
               </div>
 
-              {currentSystem === "PF2E" ? <div>Niv. {item.level}</div> : null}
-              <div>{item.category}</div>
-              {currentSystem === "DND5E" ? <div>{item.type || "Aucun"}</div> : null}
-              <div style={{ color: getRarityColor(item.rarity), fontWeight: 700 }}>
-                {item.rarity}
+              {currentSystem === "PF2E" ? <div>{t("common.levelShort")} {item.level}</div> : null}
+                <div>{tCategory(item.category, language)}</div>
+              {currentSystem === "DND5E" ? <div>{tType(item.type || "Aucun", language)}</div> : null}
+                <div style={{ color: getRarityColor(item.rarity), fontWeight: 700 }}>
+                {tRarity(item.rarity, language)}
               </div>
               <div>{item.valueAmount} {item.valueCurrency}</div>
 
               <div style={layout.centerRow}>
-                <button title="Modifier" onClick={() => handleEditItem(item.id)} style={buttons.icon}>
+                <button title={t("editor.alt.edit")} aria-label={t("editor.alt.edit")} onClick={() => handleEditItem(item.id)} style={buttons.icon}>
                   ✏️
                 </button>
-                <button title="Dupliquer" onClick={() => handleDuplicateItem(item.id)} style={buttons.icon}>
+                <button title={t("editor.alt.duplicate")} aria-label={t("editor.alt.duplicate")} onClick={() => handleDuplicateItem(item.id)} style={buttons.icon}>
                   📄
                 </button>
-                <button title="Supprimer" onClick={() => handleDeleteItem(item.id)} style={buttons.icon}>
+                <button title={t("editor.alt.delete")} aria-label={t("editor.alt.delete")} onClick={() => handleDeleteItem(item.id)} style={buttons.icon}>
                   🗑️
                 </button>
               </div>
@@ -669,10 +673,10 @@ export default function TableEditor({
 
       <div style={{ ...layout.centerRow, marginTop: "20px" }}>
         <button onClick={handleSaveTable} style={buttons.primary}>
-          Enregistrer la table
+        {t("editor.saveTable")}
         </button>
         <button onClick={onCancel} style={buttons.secondary}>
-          Annuler
+        {t("editor.cancel")}
         </button>
       </div>
     </div>

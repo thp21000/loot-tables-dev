@@ -49,11 +49,18 @@
   - Barre recherche/tri, cartes de tables et footer secondaire alignés sur une largeur utile commune
   - Footer secondaire restructuré sur deux lignes pour mieux tenir dans le popover
   - Boutons de lancement rapide / lancer déplacés dans la ligne d’actions principale des tables
+  - Support multi-systèmes avec séparation des données PF2E / DND5E
+  - Nouveau sélecteur de système dans l’interface principale
+  - Type d’objet disponible sur les items (notamment utile pour DND5E)
+  - Modal unique d’import/export (JSON/CSV) pour centraliser les transferts de fichiers
+  - Formats CSV adaptés selon le système (PF2E avec niveau, DND5E avec type)
+  - Ajout de nouvelles raretés/catégories compatibles PF2E et DND5E
+  - Ajout de la devise `pe` (pièce d’électrum)
 - Ce qui est en cours :
-  - Finition de l’ergonomie visuelle du popover principal (polish final largeur réelle, densité, alignements fins)
+  - Relecture UX du flux import/export unifié et validations des derniers textes UI
 - Ce qui bloque :
   - Le popover Owlbear reste dépendant des limites de rendu de la plateforme ; même avec redimensionnement dynamique, le comportement réel doit encore être validé dans Owlbear sur plusieurs cas d’usage.
-  - Le dernier sujet ouvert n’est plus la base technique du scroll/fond, mais les derniers ajustements visuels de densité et d’équilibre des marges.
+  - La migration/lisibilité des anciens exports hétérogènes (avant séparation PF2E/DND5E) nécessite encore des tests utilisateurs réels.
 
 ## Architecture du projet
 - `public/manifest.json`
@@ -69,7 +76,8 @@
   - Sinon rend l’application principale
 - `src/App.tsx`
   - UI principale de l’extension
-  - Gère tables, imports, exports, tirages, validation, rôle MJ/joueur, footer secondaire, état Owlbear
+  - Gère tables, imports/exports unifiés, tirages, validation, rôle MJ/joueur, footer secondaire, état Owlbear
+  - Gère le système courant (PF2E / DND5E) et charge les données associées
   - Mesure la largeur réelle du contenu principal pour redimensionner le popover Owlbear
 - `src/owlbear.ts`
   - Couche utilitaire Owlbear SDK
@@ -104,6 +112,8 @@
 - `src/utils/storage.ts`
   - Stockage local tables + état UI
   - Import/export JSON/CSV
+  - Clés de stockage distinctes par système (PF2E / DND5E)
+  - Adaptation du format CSV selon le système de la table
 - `src/utils/loot.ts`
   - Logique de tirage, probabilités, catégories disponibles
 
@@ -130,12 +140,16 @@
 - [x] Import/export JSON global
 - [x] Export JSON par table
 - [x] Export CSV par table
+- [x] Support multi-systèmes PF2E / DND5E
+- [x] Stockage local séparé par système
+- [x] Champs item étendus (type) pour couvrir DND5E
 - [x] Import CSV en nouvelle table
 - [x] Import CSV dans une table existante
 - [x] Choix ajouter/remplacer lors d’un import CSV dans une table
 - [x] Détection de doublons simples à l’import
 - [x] Collage multiple depuis Excel
 - [x] Correction d’encodage UTF-8 CSV
+- [x] Modal unique import/export (JSON/CSV)
 - [x] Mémorisation locale de l’UI
 - [x] Tirage configuré
 - [x] Tirage rapide
@@ -270,6 +284,34 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
   - finir le polish visuel des espacements et alignements fins
 - prochaine action utile :
   - vérifier en situation réelle Owlbear les derniers réglages de largeur dynamique et corriger uniquement les derniers écarts visuels constatés
+
+### Session du 2026-03-24
+- sujets traités :
+  - Ajout du support multi-systèmes (PF2E / DND5E)
+  - Séparation des clés de stockage local par système
+  - Évolution des types de données (système sur table, type sur item)
+  - Unification des flux d’import/export dans une modal dédiée
+  - Mise à jour des formats CSV selon le système
+  - Ajustements UI/layout liés au nouveau flux de transfert
+- fichiers modifiés :
+  - `PROJECT_CONTEXT.md`
+  - `README.md`
+  - `src/App.tsx`
+  - `src/components/TableEditor.tsx`
+  - `src/components/TableList.tsx`
+  - `src/main.tsx`
+  - `src/owlbear.ts`
+  - `src/types.ts`
+  - `src/utils/loot.ts`
+  - `src/utils/storage.ts`
+  - `src/index.css`
+- décisions prises :
+  - Conserver une logique de stockage local mais cloisonnée par système de jeu
+  - Centraliser import/export dans une seule modal pour réduire la complexité perçue
+  - Garder un CSV simple et explicite, avec colonnes dépendantes du système
+- problèmes restants :
+  - Vérifier en tests utilisateurs la compréhension du changement de système (risque de confusion si les tables “disparaissent” lors d’un switch)
+  - Continuer le polish visuel final dans le popover Owlbear
 
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.

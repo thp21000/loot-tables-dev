@@ -2,6 +2,8 @@ import type { GameSystem, ItemSortMode, LootTable, TableSortMode } from "../type
 import { useMemo } from "react";
 import TableEditor from "./TableEditor";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
+import { useI18n } from "../i18n";
+import { tCategory, tRarity, tType } from "../i18n/gameTerms";
 
 type TableListProps = {
   tables: LootTable[];
@@ -179,6 +181,7 @@ export default function TableList({
   canManageTables,
   currentSystem,
 }: TableListProps) {
+  const { t } = useI18n();
   const viewItemGridTemplate =
     currentSystem === "DND5E"
       ? VIEW_ITEM_GRID_TEMPLATE_DND5E
@@ -216,7 +219,7 @@ export default function TableList({
   }, [tables, searchTerm, tableSortMode]);
 
   if (tables.length === 0) {
-    return <p style={typography.pageSubtitle}>Aucune table enregistrée.</p>;
+    return <p style={typography.pageSubtitle}>{t("table.none")}</p>;
   }
 
   return (
@@ -229,18 +232,18 @@ export default function TableList({
         }}
       >
         <div style={{ width: "420px", maxWidth: "100%" }}>
-          <label style={typography.label}>Rechercher une table</label>
+          <label style={typography.label}>{t("table.search")}</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(event) => onSearchTermChange(event.target.value)}
-            placeholder="Nom de la table..."
+            placeholder={t("table.searchPlaceholder")}
             style={controls.input}
           />
         </div>
 
         <div style={{ width: "280px", maxWidth: "100%" }}>
-          <label style={typography.label}>Trier les tables</label>
+          <label style={typography.label}>{t("table.sort")}</label>
           <select
             value={tableSortMode}
             onChange={(event) =>
@@ -248,18 +251,18 @@ export default function TableList({
             }
             style={controls.select}
           >
-            <option value="updated-desc">Modification récente → ancienne</option>
-            <option value="updated-asc">Modification ancienne → récente</option>
-            <option value="name-asc">Nom A → Z</option>
-            <option value="name-desc">Nom Z → A</option>
-            <option value="count-desc">Plus d’objets → moins d’objets</option>
-            <option value="count-asc">Moins d’objets → plus d’objets</option>
+            <option value="updated-desc">{t("table.sort.updatedDesc")}</option>
+            <option value="updated-asc">{t("table.sort.updatedAsc")}</option>
+            <option value="name-asc">{t("table.sort.nameAsc")}</option>
+            <option value="name-desc">{t("table.sort.nameDesc")}</option>
+            <option value="count-desc">{t("table.sort.countDesc")}</option>
+            <option value="count-asc">{t("table.sort.countAsc")}</option>
           </select>
         </div>
       </div>
 
       {filteredAndSortedTables.length === 0 ? (
-        <p style={typography.pageSubtitle}>Aucune table ne correspond à la recherche.</p>
+        <p style={typography.pageSubtitle}>{t("table.searchNoMatch")}</p>
       ) : (
         <div style={{ display: "grid", gap: "16px", width: "100%" }}>
           {filteredAndSortedTables.map((table) => {
@@ -297,11 +300,12 @@ export default function TableList({
                           }}
                           title={
                             isExpanded
-                              ? "Masquer les objets de la table"
-                              : "Afficher les objets de la table"
+                            ? t("table.toggleItemsHide")
+                            : t("table.toggleItemsShow")
                           }
                         >
-                          {isExpanded ? "▼" : "▶"} {table.items.length} objet(s)
+                          {isExpanded ? "▼" : "▶"}{" "}
+                          {t("table.itemCount", { count: table.items.length })}
                         </button>
                       </p>
 
@@ -313,18 +317,31 @@ export default function TableList({
                           alignItems: "center",
                         }}
                       >
-                          <button onClick={() => onEdit(table.id)} style={buttons.secondary}>
-                            Modifier
+                          <button
+                            onClick={() => onEdit(table.id)}
+                            aria-label={t("table.action.edit")}
+                            style={buttons.secondary}
+                          >
+                            {t("table.action.edit")}
                           </button>
-                          <button onClick={() => onDelete(table.id)} style={buttons.danger}>
-                            Supprimer
+                          <button
+                            onClick={() => onDelete(table.id)}
+                            aria-label={t("table.action.delete")}
+                            style={buttons.danger}
+                          >
+                            {t("table.action.delete")}
                           </button>
-                          <button onClick={() => onDuplicate(table.id)} style={buttons.secondary}>
-                            Dupliquer
+                          <button
+                            onClick={() => onDuplicate(table.id)}
+                            aria-label={t("table.action.duplicate")}
+                            style={buttons.secondary}
+                          >
+                            {t("table.action.duplicate")}
                           </button>
                           <button
                             onClick={() => onQuickRoll(table.id)}
-                            title="Tirage rapide"
+                            title={t("table.action.quickRollTitle")}
+                            aria-label={t("table.action.quickRollTitle")}
                             style={{
                               ...buttons.icon,
                               width: "52px",
@@ -339,7 +356,8 @@ export default function TableList({
                           </button>
                           <button
                             onClick={() => onRoll(table.id)}
-                            title="Lancer la table"
+                            title={t("table.action.rollTitle")}
+                            aria-label={t("table.action.rollTitle")}
                             style={buttons.launch}
                           >
                             ▶
@@ -364,7 +382,7 @@ export default function TableList({
                                 textAlign: "center",
                               }}
                             >
-                              Aucun objet dans cette table.
+                              {t("table.emptyItems")}
                             </p>
                           ) : (
                             <div style={viewItemBlockStyle}>
@@ -377,7 +395,7 @@ export default function TableList({
                                 }}
                               >
                                 <div style={{ width: "220px" }}>
-                                  <label style={typography.label}>Trier les objets</label>
+                                <label style={typography.label}>{t("table.sortItems")}</label>
                                   <select
                                     value={getItemSortMode(table.id)}
                                     onChange={(event) =>
@@ -388,16 +406,16 @@ export default function TableList({
                                     }
                                     style={controls.select}
                                   >
-                                    <option value="level-asc">Niveau croissant</option>
-                                    <option value="level-desc">Niveau décroissant</option>
-                                    <option value="name-asc">Nom A → Z</option>
-                                    <option value="name-desc">Nom Z → A</option>
-                                    <option value="category-asc">Catégorie A → Z</option>
-                                    <option value="category-desc">Catégorie Z → A</option>
-                                    <option value="rarity-asc">Rareté croissante</option>
-                                    <option value="rarity-desc">Rareté décroissante</option>
-                                    <option value="value-asc">Valeur croissante</option>
-                                    <option value="value-desc">Valeur décroissante</option>
+                                    <option value="level-asc">{t("table.itemSort.levelAsc")}</option>
+                                    <option value="level-desc">{t("table.itemSort.levelDesc")}</option>
+                                    <option value="name-asc">{t("table.itemSort.nameAsc")}</option>
+                                    <option value="name-desc">{t("table.itemSort.nameDesc")}</option>
+                                    <option value="category-asc">{t("table.itemSort.categoryAsc")}</option>
+                                    <option value="category-desc">{t("table.itemSort.categoryDesc")}</option>
+                                    <option value="rarity-asc">{t("table.itemSort.rarityAsc")}</option>
+                                    <option value="rarity-desc">{t("table.itemSort.rarityDesc")}</option>
+                                    <option value="value-asc">{t("table.itemSort.valueAsc")}</option>
+                                    <option value="value-desc">{t("table.itemSort.valueDesc")}</option>
                                   </select>
                                 </div>
                               </div>
@@ -416,13 +434,13 @@ export default function TableList({
                                   ...viewItemRowStyle,
                                 }}
                               >
-                                <div>Nom</div>
-                                <div>Fiche</div>
-                                {currentSystem === "PF2E" ? <div>Niveau</div> : null}
-                                <div>Catégorie</div>
-                                {currentSystem === "DND5E" ? <div>Type</div> : null}
-                                <div>Rareté</div>
-                                <div>Montant</div>
+                                <div>{t("column.name")}</div>
+                                <div>{t("column.sheet")}</div>
+                                {currentSystem === "PF2E" ? <div>{t("column.level")}</div> : null}
+                                <div>{t("column.category")}</div>
+                                {currentSystem === "DND5E" ? <div>{t("column.type")}</div> : null}
+                                <div>{t("column.rarity")}</div>
+                                <div>{t("column.amount")}</div>
                               </div>
 
                               <div style={{ display: "grid", gap: "8px" }}>
@@ -442,8 +460,8 @@ export default function TableList({
                                       ...viewItemRowStyle,
                                     }}
                                   >
-                                    <div style={viewItemNameCellStyle} title={item.name || "Sans nom"}>
-                                      <strong>{item.name || "Sans nom"}</strong>
+                                    <div style={viewItemNameCellStyle} title={item.name || t("common.unnamed")}>
+                                    <strong>{item.name || t("common.unnamed")}</strong>
                                     </div>
 
                                     <div>
@@ -454,17 +472,17 @@ export default function TableList({
                                           rel="noreferrer"
                                           style={{ color: colors.primary }}
                                         >
-                                          Fiche
+                                        {t("column.sheet")}
                                         </a>
                                       ) : (
                                         "—"
                                       )}
                                     </div>
 
-                                    {currentSystem === "PF2E" ? <div>Niv. {item.level}</div> : null}
-                                    <div>{item.category}</div>
+                                    {currentSystem === "PF2E" ? <div>{t("common.levelShort")} {item.level}</div> : null}
+                                    <div>{tCategory(item.category, language)}</div>
                                     {currentSystem === "DND5E" ? (
-                                      <div>{item.type || "Aucun"}</div>
+                                      <div>{tType(item.type || "Aucun", language)}</div>
                                     ) : null}
                                     <div
                                       style={{
@@ -472,7 +490,7 @@ export default function TableList({
                                         fontWeight: 700,
                                       }}
                                     >
-                                      {item.rarity}
+                                      {tRarity(item.rarity, language)}
                                     </div>
                                     <div>{item.valueAmount} {item.valueCurrency}</div>
                                   </div>

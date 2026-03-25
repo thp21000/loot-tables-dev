@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import type { OwlbearPlayerRole, RollResult } from "../types";
-import { getProbabilityModeLabel } from "../utils/loot";
+import type { OwlbearPlayerRole, ProbabilityMode, RollResult } from "../types";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
+import { useI18n } from "../i18n";
+import { tCategory, tRarity } from "../i18n/gameTerms";
 
 type ResultDialogProps = {
   isOpen: boolean;
@@ -21,21 +22,42 @@ function getRarityColor(rarity: string): string {
   return "#a78bfa";
 }
 
-function formatResultText(result: RollResult): string {
-  const header = `Résultat du tirage — ${result.tableName}`;
-  const options = `Niveau max : ${result.options.maxLevel} | Quantité : ${result.options.quantity} | Doublons : ${result.options.allowDuplicates ? "Oui" : "Non"} | Mode : ${getProbabilityModeLabel(result.options.probabilityMode)}`;
+function getModeLabel(mode: ProbabilityMode, t: (key: string) => string): string {
+  if (mode === "balanced") return t("roll.mode.balanced");
+  if (mode === "low-soft") return t("roll.mode.lowSoft");
+  if (mode === "low-strong") return t("roll.mode.lowStrong");
+  return t("roll.mode.rarityOnly");
+}
+
+function formatResultText(
+  result: RollResult,
+  t: (key: string, params?: Record<string, string | number>) => string,
+  language: "fr" | "en"
+): string {
+  const header = `${t("result.title.gm")} — ${result.tableName}`;
+  const options = `${t("result.optionsSummary", {
+    maxLevel: result.options.maxLevel,
+    quantity: result.options.quantity,
+    allowDuplicates: result.options.allowDuplicates
+      ? t("result.allowDuplicates.yes")
+      : t("result.allowDuplicates.no"),
+  })} | ${t("result.modeSummary", {
+    mode: getModeLabel(result.options.probabilityMode, (key) => t(key)),
+  })}`;
   const categories =
     result.options.categories.length > 0
-      ? `Catégories : ${result.options.categories.join(", ")}`
-      : "Catégories : toutes";
+    ? `${t("roll.categories")} : ${result.options.categories
+      .map((category) => tCategory(category, language))
+      .join(", ")}`
+  : `${t("roll.categories")} : *`;
 
   const items =
     result.items.length === 0
-      ? ["Aucun objet ne correspond aux filtres choisis."]
+    ? [t("result.noItem")]
       : result.items.map(
-          (item, index) =>
-            `${index + 1}. ${item.name} — Niveau ${item.level} — ${item.category} — ${item.rarity} — ${item.valueAmount} ${item.valueCurrency}${item.url ? ` — ${item.url}` : ""}`
-        );
+        (item, index) =>
+          `${index + 1}. ${item.name} — ${t("result.level", { level: item.level })} — ${tCategory(item.category, language)} — ${tRarity(item.rarity, language)} — ${item.valueAmount} ${item.valueCurrency}${item.url ? ` — ${item.url}` : ""}`
+      );
 
   return [header, options, categories, "", ...items].join("\n");
 }
@@ -50,22 +72,23 @@ export default function ResultDialog({
   onShowAlert,
   playerRole,
 }: ResultDialogProps) {
+  const { t, language } = useI18n();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const textToCopy = useMemo(() => {
     if (!result) return "";
-    return formatResultText(result);
-  }, [result]);
+    return formatResultText(result, t, language);
+  }, [result, t, language]);
 
   async function handleCopy() {
     if (!textToCopy) return;
 
     try {
       await navigator.clipboard.writeText(textToCopy);
-      onShowAlert("Résultat copié dans le presse-papiers.");
+      onShowAlert(t("result.copyOk"));
     } catch (error) {
       console.error(error);
-      onShowAlert("Impossible de copier le résultat.");
+      onShowAlert(t("result.copyError"));
     }
   }
 
@@ -100,7 +123,7 @@ export default function ResultDialog({
         }}
       >
         <h2 style={typography.cardTitle}>
-          {playerRole === "GM" ? "Résultat du tirage" : "Butin reçu"}
+        {playerRole === "GM" ? t("result.title.gm") : t("result.title.player")}
         </h2>
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "6px" }}>
@@ -108,18 +131,24 @@ export default function ResultDialog({
         </p>
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "4px" }}>
-          Niveau max : {result.options.maxLevel} · Quantité{" "}
-          {result.options.quantity} · Doublons :{" "}
-          {result.options.allowDuplicates ? "Oui" : "Non"}
+        {t("result.optionsSummary", {
+            maxLevel: result.options.maxLevel,
+            quantity: result.options.quantity,
+            allowDuplicates: result.options.allowDuplicates
+              ? t("result.allowDuplicates.yes")
+              : t("result.allowDuplicates.no"),
+          })}
         </p>
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "18px" }}>
-          Mode : {getProbabilityModeLabel(result.options.probabilityMode)}
+        {t("result.modeSummary", {
+            mode: getModeLabel(result.options.probabilityMode, t),
+          })}
         </p>
 
         {result.items.length === 0 ? (
           <p style={{ textAlign: "center", marginTop: "24px", color: colors.textSoft }}>
-            Aucun objet ne correspond aux filtres choisis.
+            {t("result.noItem")}
           </p>
         ) : (
           <div style={{ display: "grid", gap: "12px", marginTop: "20px" }}>
@@ -153,7 +182,7 @@ export default function ResultDialog({
                           rel="noreferrer"
                           style={{ color: colors.primary }}
                         >
-                          Fiche
+                          {t("column.sheet")}
                         </a>
                       </>
                     ) : null}
@@ -173,17 +202,21 @@ export default function ResultDialog({
                     color: colors.textSoft,
                   }}
                 >
-                  <span>Niveau {item.level}</span>
-                  <span>{item.category}</span>
+                  <span>{t("result.level", { level: item.level })}</span>
+                  <span>{tCategory(item.category, language)}</span>
                   <span
                     style={{
                       color: getRarityColor(item.rarity),
                       fontWeight: 700,
                     }}
                   >
-                    {item.rarity}
+                    {tRarity(item.rarity, language)}
                   </span>
-                  <span>Poids : {Math.round(item.effectiveWeight * 100) / 100}</span>
+                  <span>
+                    {t("result.weight", {
+                      weight: Math.round(item.effectiveWeight * 100) / 100,
+                    })}
+                  </span>
                 </div>
               </div>
             ))}
@@ -199,19 +232,19 @@ export default function ResultDialog({
           {playerRole === "GM" ? (
             <>
               <button onClick={onValidate} style={buttons.primary}>
-                Valider le tirage
+              {t("result.validate")}
               </button>
               <button onClick={onReroll} style={buttons.secondary}>
-                Relancer
+              {t("result.reroll")}
               </button>
             </>
           ) : null}
 
           <button onClick={handleCopy} style={buttons.secondary}>
-            Copier les résultats
+          {t("result.copy")}
           </button>
           <button onClick={onClose} style={buttons.secondary}>
-            Fermer
+          {t("common.close")}
           </button>
         </div>
 
@@ -221,15 +254,15 @@ export default function ResultDialog({
             style={buttons.secondary}
           >
             {isHistoryOpen
-              ? "Masquer l’historique récent"
-              : "Afficher l’historique récent"}
+              ? t("result.history.hide")
+              : t("result.history.show")}
           </button>
 
           {isHistoryOpen && (
             <>
               {history.length === 0 ? (
                 <p style={{ color: colors.textMuted, marginTop: "12px" }}>
-                  Aucun historique disponible.
+                  {t("result.history.empty")}
                 </p>
               ) : (
                 <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
@@ -251,13 +284,15 @@ export default function ResultDialog({
                           marginTop: "4px",
                         }}
                       >
-                        Niveau max {entry.options.maxLevel} · Quantité{" "}
-                        {entry.options.quantity} · Mode{" "}
-                        {getProbabilityModeLabel(entry.options.probabilityMode)}
+                        {t("result.history.summary", {
+                          maxLevel: entry.options.maxLevel,
+                          quantity: entry.options.quantity,
+                          mode: getModeLabel(entry.options.probabilityMode, t),
+                        })}
                       </div>
                       <div style={{ marginTop: "6px", color: colors.textSoft }}>
                         {entry.items.length === 0
-                          ? "Aucun objet"
+                          ? t("result.history.noItem")
                           : entry.items.map((item) => item.name).join(", ")}
                       </div>
                     </div>
