@@ -25,11 +25,13 @@ Une extension Owlbear Rodeo pour créer, modifier, importer, exporter et lancer 
 - Détection simple de doublons à l'import
 - Modal unique pour tous les transferts de fichier (import/export JSON/CSV)
 - Tirage configuré avec :
-  - niveau maximum
-  - quantité
+  - plage de niveau (min/max)
+  - plage de quantité (min/max)
+  - plage de valeur en pc (min/max)
   - catégories
   - doublons autorisés ou non
   - mode de probabilité
+- Saisie manuelle précise des bornes min/max (synchronisée avec les sliders)
 - Tirage rapide avec les derniers paramètres mémorisés
 - Mémorisation locale de plusieurs états d'interface
 
@@ -158,6 +160,14 @@ les données sont stockées localement dans le navigateur (séparées par systè
 si les données du site sont supprimées par le navigateur, certains états locaux peuvent être perdus
 le partage temps réel MJ / joueurs n'est pas encore implémenté
 le stockage lié à la room ou à la scène n'est pas encore activé
+
+## Notes récentes (roll)
+
+- Les sliders min/max du roll sont bornés automatiquement à partir des valeurs de la table sélectionnée :
+  - niveau min/max basé sur les niveaux d’objets de la table
+  - valeur min/max (pc) basée sur les valeurs converties en cuivre des objets de la table
+  - quantité max basée sur le nombre d’objets de la table
+- Les bornes min/max peuvent aussi être saisies manuellement via des champs compacts inline.
 
 ## Feuille de route
 

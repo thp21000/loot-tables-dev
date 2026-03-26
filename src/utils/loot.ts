@@ -32,25 +32,35 @@ function getValueInCopper(item: LootItem): number {
 
 function getLevelFactor(
   itemLevel: number,
+  minLevel: number,
   maxLevel: number,
   mode: ProbabilityMode
 ): number {
-  const distance = maxLevel - itemLevel + 1;
+  const lowDistance = itemLevel - minLevel + 1;
+  const highDistance = maxLevel - itemLevel + 1;
 
-  if (distance <= 0) {
+  if (lowDistance <= 0 || highDistance <= 0) {
     return 0;
   }
 
   if (mode === "balanced") {
-    return distance;
+    return 1;
   }
 
   if (mode === "low-soft") {
-    return Math.pow(distance, 1.5);
+    return Math.pow(highDistance, 1.5);
   }
 
   if (mode === "low-strong") {
-    return Math.pow(distance, 2);
+    return Math.pow(highDistance, 2);
+  }
+
+  if (mode === "high-soft") {
+    return Math.pow(lowDistance, 1.5);
+  }
+
+  if (mode === "high-strong") {
+    return Math.pow(lowDistance, 2);
   }
 
   return 1;
@@ -58,13 +68,14 @@ function getLevelFactor(
 
 function getEffectiveWeight(
   item: LootItem,
+  minLevel: number,
   maxLevel: number,
   mode: ProbabilityMode
 ): number {
-  if (item.level > maxLevel) return 0;
+  if (item.level < minLevel || item.level > maxLevel) return 0;
 
   const rarityWeight = getRarityWeight(item.rarity);
-  const levelFactor = getLevelFactor(item.level, maxLevel, mode);
+  const levelFactor = getLevelFactor(item.level, minLevel, maxLevel, mode);
 
   return rarityWeight * levelFactor;
 }
@@ -102,7 +113,14 @@ export function getProbabilityModeLabel(mode: ProbabilityMode): string {
   if (mode === "balanced") return "Équilibré";
   if (mode === "low-soft") return "Favorise légèrement les bas niveaux";
   if (mode === "low-strong") return "Favorise fortement les bas niveaux";
+  if (mode === "high-soft") return "Favorise légèrement les hauts niveaux";
+  if (mode === "high-strong") return "Favorise fortement les hauts niveaux";
   return "Rareté uniquement";
+}
+
+function getRandomInt(min: number, max: number): number {
+  if (max <= min) return min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export function rollLootTable(
@@ -110,12 +128,16 @@ export function rollLootTable(
   options: RollOptions
 ): RollResult {
   const filteredBaseItems = table.items.filter((item) => {
-    const matchesLevel = item.level <= options.maxLevel;
+    const matchesLevel =
+      item.level >= options.minLevel && item.level <= options.maxLevel;
     const matchesCategory =
       options.categories.length === 0 ||
       options.categories.includes(item.category);
+    const itemValuePc = getValueInCopper(item);
+    const matchesValue =
+      itemValuePc >= options.minValuePc && itemValuePc <= options.maxValuePc;
 
-    return matchesLevel && matchesCategory;
+    return matchesLevel && matchesCategory && matchesValue;
   });
 
   const weightedItems: RolledLootItem[] = filteredBaseItems
@@ -123,6 +145,7 @@ export function rollLootTable(
       ...item,
       effectiveWeight: getEffectiveWeight(
         item,
+        options.minLevel,
         options.maxLevel,
         options.probabilityMode
       ),
@@ -133,7 +156,9 @@ export function rollLootTable(
   const pool = [...weightedItems];
   const results: RolledLootItem[] = [];
 
-  for (let i = 0; i < options.quantity; i += 1) {
+  const quantity = getRandomInt(options.minQuantity, options.maxQuantity);
+
+  for (let i = 0; i < quantity; i += 1) {
     const picked = weightedPick(pool);
 
     if (!picked) {

@@ -51,13 +51,20 @@
   - Boutons de lancement rapide / lancer déplacés dans la ligne d’actions principale des tables
   - Support multi-systèmes avec séparation des données PF2E / DND5E
   - Nouveau sélecteur de système dans l’interface principale
+  - Sélecteur de langue FR/EN avec provider i18n global
+  - Mapping des termes de jeu (catégories/raretés/types) selon la langue affichée
   - Type d’objet disponible sur les items (notamment utile pour DND5E)
   - Modal unique d’import/export (JSON/CSV) pour centraliser les transferts de fichiers
   - Formats CSV adaptés selon le système (PF2E avec niveau, DND5E avec type)
   - Ajout de nouvelles raretés/catégories compatibles PF2E et DND5E
   - Ajout de la devise `pe` (pièce d’électrum)
+  - Roll avancé avec bornes min/max (niveau, quantité, valeur en cuivre) et modes de probabilité étendus
+  - Bornes de roll automatiquement dérivées de la table + saisie manuelle inline des min/max
+
 - Ce qui est en cours :
-  - Relecture UX du flux import/export unifié et validations des derniers textes UI
+  - Relecture UX des traductions FR/EN et homogénéisation terminologique
+  - Validation terrain du roll avancé (bornes automatiques, sliders, champs manuels)
+
 - Ce qui bloque :
   - Le popover Owlbear reste dépendant des limites de rendu de la plateforme ; même avec redimensionnement dynamique, le comportement réel doit encore être validé dans Owlbear sur plusieurs cas d’usage.
   - La migration/lisibilité des anciens exports hétérogènes (avant séparation PF2E/DND5E) nécessite encore des tests utilisateurs réels.
@@ -78,6 +85,7 @@
   - UI principale de l’extension
   - Gère tables, imports/exports unifiés, tirages, validation, rôle MJ/joueur, footer secondaire, état Owlbear
   - Gère le système courant (PF2E / DND5E) et charge les données associées
+  - Gère la langue courante (FR/EN) et l’intégration des textes localisés
   - Mesure la largeur réelle du contenu principal pour redimensionner le popover Owlbear
 - `src/owlbear.ts`
   - Couche utilitaire Owlbear SDK
@@ -100,7 +108,9 @@
   - Import CSV dans table
   - Collage multiple Excel
 - `src/components/RollDialog.tsx`
-  - Paramétrage d’un tirage
+  - Paramétrage avancé d’un tirage (bornes min/max niveau, quantité, valeur en cuivre)
+  - Sliders + saisie manuelle synchronisée des bornes
+  - Modes de probabilité étendus
 - `src/components/ResultDialog.tsx`
   - Résultat du tirage pour le MJ
   - Validation du tirage
@@ -116,6 +126,13 @@
   - Adaptation du format CSV selon le système de la table
 - `src/utils/loot.ts`
   - Logique de tirage, probabilités, catégories disponibles
+  - Application des filtres min/max niveau, quantité, valeur (cuivre)
+- `src/i18n/index.tsx`
+  - Provider i18n, gestion de la locale active et hook `useI18n`
+- `src/i18n/locales/fr.ts` / `src/i18n/locales/en.ts`
+  - Dictionnaires de traductions de l’interface
+- `src/i18n/gameTerms.ts`
+  - Mapping localisé des termes de jeu selon système/langue
 
 ## Bug(s) ou problème(s) connu(s)
 - La base technique largeur / scroll / fond du popover principal a été largement stabilisée, mais un dernier polish visuel reste nécessaire selon le rendu réel dans Owlbear.
@@ -142,6 +159,8 @@
 - [x] Export CSV par table
 - [x] Support multi-systèmes PF2E / DND5E
 - [x] Stockage local séparé par système
+- [x] Internationalisation FR/EN (sélecteur de langue + provider i18n)
+- [x] Mapping localisé des termes de jeu (catégories/raretés/types)
 - [x] Champs item étendus (type) pour couvrir DND5E
 - [x] Import CSV en nouvelle table
 - [x] Import CSV dans une table existante
@@ -152,6 +171,9 @@
 - [x] Modal unique import/export (JSON/CSV)
 - [x] Mémorisation locale de l’UI
 - [x] Tirage configuré
+- [x] Tirage configuré avec bornes min/max (niveau, quantité, valeur en cuivre)
+- [x] Saisie manuelle inline des bornes min/max du roll (synchronisée sliders)
+- [x] Modes de probabilité étendus dans le roll
 - [x] Tirage rapide
 - [x] Historique local récent des tirages
 - [x] Intégration Owlbear SDK minimale
@@ -206,6 +228,12 @@ Le popover principal a beaucoup avancé :
 - le footer secondaire a été restructuré sur deux lignes pour mieux tenir dans le popover
 - la grille de lecture des objets a été resserrée, alignée à gauche, et la colonne montant/devise a été fusionnée
 - les boutons de lancement rapide et de lancer sont remontés dans la ligne d’actions principale des tables
+
+Depuis la dernière mise à jour, le périmètre fonctionnel a encore évolué :
+- internationalisation FR/EN branchée à l’échelle de l’application (sélecteur + textes localisés)
+- terminologie de jeu contextualisée selon système/langue (PF2E vs DND5E)
+- roll enrichi avec bornes min/max (niveau, quantité, valeur cuivre), modes de probabilité supplémentaires et bornes automatiques dérivées de la table
+- champs manuels min/max ajoutés en complément des sliders pour un réglage précis
 
 Le sujet encore ouvert n’est plus une refonte du comportement global, mais un polish visuel ciblé du popover principal dans Owlbear :
 - vérifier que la largeur dynamique reste agréable selon les cas réels
@@ -312,6 +340,41 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
 - problèmes restants :
   - Vérifier en tests utilisateurs la compréhension du changement de système (risque de confusion si les tables “disparaissent” lors d’un switch)
   - Continuer le polish visuel final dans le popover Owlbear
+
+### Session du 2026-03-25
+- sujets traités :
+  - Intégration i18n complète (provider + dictionnaires FR/EN + branchement UI)
+  - Ajout du mapping des termes de jeu selon système/langue
+  - Évolution du roll vers des bornes min/max (niveau, quantité, valeur cuivre)
+  - Ajout de modes de probabilité supplémentaires
+  - Ajout des bornes automatiques calculées depuis la table + saisie manuelle inline des min/max
+  - Mise à jour de la documentation utilisateur et du contexte projet
+- fichiers modifiés :
+  - `PROJECT_CONTEXT.md`
+  - `README.md`
+  - `src/App.tsx`
+  - `src/components/ResultDialog.tsx`
+  - `src/components/RollDialog.tsx`
+  - `src/components/SharedGainPage.tsx`
+  - `src/components/TableEditor.tsx`
+  - `src/components/TableList.tsx`
+  - `src/i18n/index.tsx`
+  - `src/i18n/gameTerms.ts`
+  - `src/i18n/locales/fr.ts`
+  - `src/i18n/locales/en.ts`
+  - `src/index.css`
+  - `src/main.tsx`
+  - `src/owlbear.ts`
+  - `src/types.ts`
+  - `src/utils/loot.ts`
+  - `src/utils/storage.ts`
+- décisions prises :
+  - Conserver FR comme langue par défaut, avec bascule utilisateur explicite vers EN
+  - Garder les bornes automatiques du roll comme valeur de départ, tout en autorisant un override manuel précis
+  - Continuer à privilégier des itérations UI localisées sans refonte globale
+- problèmes restants :
+  - Finaliser la relecture terminologique FR/EN sur quelques libellés métier
+  - Confirmer en usage Owlbear réel le confort du roll avancé sur petits popovers
 
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.

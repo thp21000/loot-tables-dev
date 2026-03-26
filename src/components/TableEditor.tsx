@@ -359,8 +359,12 @@ export default function TableEditor({
     onSave(updatedTable);
   }
 
+  function handleScrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
-    <div style={{ width: "100%", overflow: "visible" }}>
+    <div style={{ width: "100%", overflow: "visible", paddingBottom: "112px" }}>
       <div style={{ marginBottom: "16px", textAlign: "center" }}>
         {!isEditingName ? (
           <div style={{ ...layout.centerRow }}>
@@ -671,12 +675,37 @@ export default function TableEditor({
         })}
       </div>
 
-      <div style={{ ...layout.centerRow, marginTop: "20px" }}>
+      <div
+        style={{
+          position: "fixed",
+          right: "22px",
+          bottom: "20px",
+          zIndex: 1300,
+          display: "flex",
+          gap: "8px",
+          alignItems: "center",
+          padding: "10px",
+          borderRadius: radius.lg,
+          border: `1px solid ${colors.border}`,
+          background: "rgba(17, 18, 20, 0.92)",
+          boxShadow: "0 10px 28px rgba(0, 0, 0, 0.35)",
+          backdropFilter: "blur(3px)",
+        }}
+      >
         <button onClick={handleSaveTable} style={buttons.primary}>
         {t("editor.saveTable")}
         </button>
         <button onClick={onCancel} style={buttons.secondary}>
         {t("editor.cancel")}
+        </button>
+        <button
+          type="button"
+          onClick={handleScrollToTop}
+          style={{ ...buttons.icon, minWidth: "44px", height: "44px", fontSize: "1.15rem" }}
+          title={t("editor.scrollTop")}
+          aria-label={t("editor.scrollTop")}
+        >
+          ⬆️
         </button>
       </div>
     </div>

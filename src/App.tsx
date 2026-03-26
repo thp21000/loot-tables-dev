@@ -36,6 +36,8 @@ import AlertModal from "./components/AlertModal";
 import Modal from "./components/Modal";
 import { getAvailableCategories, rollLootTable } from "./utils/loot";
 import { buttons, colors, controls, layout, typography } from "./styles/ui";
+import flagFr from "./assets/flag-fr.svg";
+import flagGb from "./assets/flag-gb.svg";
 import {
   getOwlbearPlayerName,
   getOwlbearPlayerRole,
@@ -213,6 +215,7 @@ export default function App() {
   const [transferFormat, setTransferFormat] = useState<TransferFormat>("json");
   const [transferTableId, setTransferTableId] = useState<string>("");
   const [transferImportMode, setTransferImportMode] = useState<ImportMode>("append");
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
     const hasSystemChanged = lastSystemForSaveRef.current !== currentSystem;
@@ -457,7 +460,7 @@ export default function App() {
 
     const duplicated = duplicateTable(table);
     setTables((prev) => [...prev, duplicated]);
-    setAlertMessage(`Table dupliquée : ${duplicated.name}`);
+    setAlertMessage(t("app.tableDuplicated", { name: duplicated.name }));
   }
 
   function handleExportSingleTableJson(tableId: string) {
@@ -465,7 +468,7 @@ export default function App() {
     if (!table) return;
 
     exportSingleTableToJson(table);
-    setAlertMessage(`Export JSON prêt pour : ${table.name}`);
+    setAlertMessage(t("app.exportJsonReady", { name: table.name }));
   }
 
   function handleExportSingleTableCsv(tableId: string) {
@@ -473,7 +476,7 @@ export default function App() {
     if (!table) return;
 
     exportSingleTableToCsv(table);
-    setAlertMessage(`Export CSV prêt pour : ${table.name}`);
+    setAlertMessage(t("app.exportCsvReady", { name: table.name }));
   }
 
   function handleSaveEditedTable(updatedTable: LootTable) {
@@ -481,7 +484,7 @@ export default function App() {
       prev.map((table) => (table.id === updatedTable.id ? updatedTable : table))
     );
     setEditingTableId(null);
-    setAlertMessage(`Table enregistrée : ${updatedTable.name}`);
+    setAlertMessage(t("app.tableSaved", { name: updatedTable.name }));
   }
 
   function handleCancelEdit() {
@@ -499,7 +502,7 @@ export default function App() {
       const tableToUpdate = tables.find((table) => table.id === tableId);
 
       if (!tableToUpdate) {
-        setAlertMessage("Table introuvable pour l’import CSV.");
+        setAlertMessage(t("app.csvImportTableNotFound"));
         return;
       }
 
@@ -522,18 +525,20 @@ export default function App() {
       );
 
       const baseMessage = merged.replaced
-        ? `Import terminé : ${merged.importedCount} objet(s) chargés en remplacement.`
-        : `Import terminé : ${merged.importedCount} objet(s) ajoutés.`;
+      ? t("app.importDoneReplace", { count: merged.importedCount })
+      : t("app.importDoneAppend", { count: merged.importedCount });
 
       const duplicateMessage =
         merged.skippedDuplicatesCount > 0
-          ? ` ${merged.skippedDuplicatesCount} doublon(s) ignoré(s).`
+        ? ` ${t("app.importDuplicatesSkipped", {
+          count: merged.skippedDuplicatesCount,
+        })}`
           : "";
 
       setAlertMessage(baseMessage + duplicateMessage);
     } catch (error) {
       console.error(error);
-      setAlertMessage("Impossible d’importer ce CSV dans la table.");
+      setAlertMessage(t("app.importCsvFailed"));
     }
   }
 
@@ -682,13 +687,13 @@ export default function App() {
         }));
         const mergedTables = mergeImportedTables(tables, importedTablesForSystem);
         setTables(mergedTables);
-        setAlertMessage(`${importedTables.length} table(s) importée(s) avec succès.`);
+        setAlertMessage(t("app.importTablesSuccess", { count: importedTables.length }));
       } else if (transferFormat === "json" && transferScope === "new-table") {
         const importedTables = await importTablesFromFile(file);
         const firstImportedTable = importedTables[0];
 
         if (!firstImportedTable) {
-          setAlertMessage("Aucune table trouvée dans ce JSON.");
+          setAlertMessage(t("app.importNoTableInJson"));
           return;
         }
 
@@ -706,15 +711,15 @@ export default function App() {
         };
 
         setTables((prev) => [...prev, newTable]);
-        setAlertMessage(`Nouvelle table créée depuis JSON : ${newTable.name}`);
+        setAlertMessage(t("app.importNewTableFromJson", { name: newTable.name }));
       } else if (transferFormat === "csv" && transferScope === "global") {
         const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
         setTables((prev) => [...prev, importedTable]);
-        setAlertMessage(`Table CSV importée : ${importedTable.name}`);
+        setAlertMessage(t("app.importCsvTable", { name: importedTable.name }));
       } else if (transferFormat === "csv" && transferScope === "new-table") {
         const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
         setTables((prev) => [...prev, importedTable]);
-        setAlertMessage(`Nouvelle table créée depuis CSV : ${importedTable.name}`);
+        setAlertMessage(t("app.importNewTableFromCsv", { name: importedTable.name }));
       } else if (transferFormat === "csv" && transferScope === "table") {
         if (!transferTableId) {
           setAlertMessage(t("app.targetTableRequiredImport"));
@@ -769,6 +774,14 @@ export default function App() {
     input.click();
   }
 
+  function openSettingsModal() {
+    setIsSettingsModalOpen(true);
+  }
+
+  function closeSettingsModal() {
+    setIsSettingsModalOpen(false);
+  }
+
   const rollingTable =
     rollingTableId === null
       ? null
@@ -799,6 +812,29 @@ export default function App() {
           background: colors.pageBg,
         }}
       >
+      <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: "8px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={openSettingsModal}
+              style={{
+                ...buttons.icon,
+                width: "44px",
+                height: "44px",
+                fontSize: "1.2rem",
+              }}
+              title={t("app.settings.title")}
+              aria-label={t("app.settings.title")}
+            >
+              ⚙️
+            </button>
+          </div>
+
           <h1 style={{ ...typography.pageTitle, marginBottom: "4px" }}>{t("app.title")}</h1>
 
           <p style={{ ...typography.pageSubtitle, marginBottom: "14px" }}>
@@ -807,30 +843,6 @@ export default function App() {
 
           {canManageTables ? (
             <div style={{ ...layout.topBar, marginBottom: "14px" }}>
-              <select
-                value={currentSystem}
-                onChange={(event) => {
-                  const nextSystem = event.target.value as GameSystem;
-
-                  if (nextSystem === currentSystem) {
-                    return;
-                  }
-
-                  setCurrentSystem(nextSystem);
-                }}
-                style={{ ...controls.select, minWidth: "200px", width: "200px" }}
-              >
-                <option value="PF2E">Pathfinder 2e</option>
-                <option value="DND5E">DnD 5e</option>
-              </select>
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value as "fr" | "en")}
-                style={{ ...controls.select, minWidth: "140px", width: "140px" }}
-              >
-                <option value="fr">{t("lang.fr")}</option>
-                <option value="en">{t("lang.en")}</option>
-              </select>
               <button onClick={handleCreateTable} style={buttons.primary}>
               {t("app.createTable")}
               </button>
@@ -936,6 +948,127 @@ export default function App() {
           </div>
         </div>
       
+        <Modal
+        isOpen={isSettingsModalOpen}
+        title={t("app.settings.title")}
+        onClose={closeSettingsModal}
+        footer={
+          <button type="button" onClick={closeSettingsModal} style={buttons.secondary}>
+            {t("common.close")}
+          </button>
+        }
+      >
+        <div style={{ display: "grid", gap: "14px" }}>
+          {canManageTables ? (
+            <div>
+              <p style={{ ...typography.label, marginBottom: "8px" }}>
+                {t("app.settings.system")}
+              </p>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentSystem("PF2E")}
+                  style={{
+                    ...buttons.secondary,
+                    width: "140px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    border:
+                      currentSystem === "PF2E"
+                        ? `2px solid ${colors.primary}`
+                        : `1px solid ${colors.border}`,
+                    background: currentSystem === "PF2E" ? colors.primary : colors.secondary,
+                  }}
+                >
+                  <span style={{ fontSize: "1.2rem" }}>⚔️</span>
+                  <span>{t("app.settings.system.pf2e")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentSystem("DND5E")}
+                  style={{
+                    ...buttons.secondary,
+                    width: "140px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    border:
+                      currentSystem === "DND5E"
+                        ? `2px solid ${colors.primary}`
+                        : `1px solid ${colors.border}`,
+                    background: currentSystem === "DND5E" ? colors.primary : colors.secondary,
+                  }}
+                >
+                  <span style={{ fontSize: "1.2rem" }}>🐉</span>
+                  <span>{t("app.settings.system.dnd5e")}</span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <p style={{ ...typography.label, marginBottom: "8px" }}>
+              {t("app.settings.language")}
+            </p>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => setLanguage("fr")}
+                style={{
+                  ...buttons.secondary,
+                  width: "140px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  border:
+                    language === "fr"
+                      ? `2px solid ${colors.primary}`
+                      : `1px solid ${colors.border}`,
+                  background: language === "fr" ? colors.primary : colors.secondary,
+                }}
+              >
+                <img
+                  src={flagFr}
+                  alt={t("lang.fr")}
+                  style={{ width: "22px", height: "16px", borderRadius: "2px" }}
+                />
+                <span>{t("lang.fr")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                style={{
+                  ...buttons.secondary,
+                  width: "140px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  border:
+                    language === "en"
+                      ? `2px solid ${colors.primary}`
+                      : `1px solid ${colors.border}`,
+                  background: language === "en" ? colors.primary : colors.secondary,
+                }}
+              >
+                <img
+                  src={flagGb}
+                  alt={t("lang.en")}
+                  style={{ width: "22px", height: "16px", borderRadius: "2px" }}
+                />
+                <span>{t("lang.en")}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       <Modal
         isOpen={isTransferModalOpen}
         title={t("app.transfer.title")}
@@ -1039,6 +1172,7 @@ export default function App() {
         key={`roll-dialog-${language}`}
         isOpen={rollingTable !== null}
         tableName={rollingTable?.name ?? ""}
+        tableItems={rollingTable?.items ?? []}
         availableCategories={
           rollingTable ? getAvailableCategories(rollingTable) : []
         }

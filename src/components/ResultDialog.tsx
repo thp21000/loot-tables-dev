@@ -26,6 +26,8 @@ function getModeLabel(mode: ProbabilityMode, t: (key: string) => string): string
   if (mode === "balanced") return t("roll.mode.balanced");
   if (mode === "low-soft") return t("roll.mode.lowSoft");
   if (mode === "low-strong") return t("roll.mode.lowStrong");
+  if (mode === "high-soft") return t("roll.mode.highSoft");
+  if (mode === "high-strong") return t("roll.mode.highStrong");
   return t("roll.mode.rarityOnly");
 }
 
@@ -36,8 +38,12 @@ function formatResultText(
 ): string {
   const header = `${t("result.title.gm")} — ${result.tableName}`;
   const options = `${t("result.optionsSummary", {
+    minLevel: result.options.minLevel,
     maxLevel: result.options.maxLevel,
-    quantity: result.options.quantity,
+    minQuantity: result.options.minQuantity,
+    maxQuantity: result.options.maxQuantity,
+    minValuePc: result.options.minValuePc,
+    maxValuePc: result.options.maxValuePc,
     allowDuplicates: result.options.allowDuplicates
       ? t("result.allowDuplicates.yes")
       : t("result.allowDuplicates.no"),
@@ -132,8 +138,12 @@ export default function ResultDialog({
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "4px" }}>
         {t("result.optionsSummary", {
+            minLevel: result.options.minLevel,
             maxLevel: result.options.maxLevel,
-            quantity: result.options.quantity,
+            minQuantity: result.options.minQuantity,
+            maxQuantity: result.options.maxQuantity,
+            minValuePc: result.options.minValuePc,
+            maxValuePc: result.options.maxValuePc,
             allowDuplicates: result.options.allowDuplicates
               ? t("result.allowDuplicates.yes")
               : t("result.allowDuplicates.no"),
@@ -285,8 +295,12 @@ export default function ResultDialog({
                         }}
                       >
                         {t("result.history.summary", {
+                          minLevel: entry.options.minLevel,
                           maxLevel: entry.options.maxLevel,
-                          quantity: entry.options.quantity,
+                          minQuantity: entry.options.minQuantity,
+                          maxQuantity: entry.options.maxQuantity,
+                          minValuePc: entry.options.minValuePc,
+                          maxValuePc: entry.options.maxValuePc,
                           mode: getModeLabel(entry.options.probabilityMode, t),
                         })}
                       </div>

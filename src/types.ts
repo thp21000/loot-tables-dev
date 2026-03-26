@@ -36,6 +36,8 @@ export type ProbabilityMode =
   | "balanced"
   | "low-soft"
   | "low-strong"
+  | "high-soft"
+  | "high-strong"
   | "rarity-only";
 
 export type TableSortMode =
@@ -84,8 +86,12 @@ export type LootTable = {
 };
 
 export type RollOptions = {
+  minLevel: number;
   maxLevel: number;
-  quantity: number;
+  minQuantity: number;
+  maxQuantity: number;
+  minValuePc: number;
+  maxValuePc: number;
   categories: LootCategory[];
   allowDuplicates: boolean;
   probabilityMode: ProbabilityMode;

@@ -181,7 +181,7 @@ export default function TableList({
   canManageTables,
   currentSystem,
 }: TableListProps) {
-  const { t } = useI18n();
+  const { t, language: currentLanguage } = useI18n();
   const viewItemGridTemplate =
     currentSystem === "DND5E"
       ? VIEW_ITEM_GRID_TEMPLATE_DND5E
@@ -480,9 +480,9 @@ export default function TableList({
                                     </div>
 
                                     {currentSystem === "PF2E" ? <div>{t("common.levelShort")} {item.level}</div> : null}
-                                    <div>{tCategory(item.category, language)}</div>
+                                    <div>{tCategory(item.category, currentLanguage)}</div>
                                     {currentSystem === "DND5E" ? (
-                                      <div>{tType(item.type || "Aucun", language)}</div>
+                                      <div>{tType(item.type || "Aucun", currentLanguage)}</div>
                                     ) : null}
                                     <div
                                       style={{
@@ -490,7 +490,7 @@ export default function TableList({
                                         fontWeight: 700,
                                       }}
                                     >
-                                      {tRarity(item.rarity, language)}
+                                      {tRarity(item.rarity, currentLanguage)}
                                     </div>
                                     <div>{item.valueAmount} {item.valueCurrency}</div>
                                   </div>

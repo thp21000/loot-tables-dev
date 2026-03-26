@@ -16,8 +16,12 @@ function getStorageKey(system: GameSystem): string {
 }
 
 const DEFAULT_ROLL_OPTIONS: RollOptions = {
+  minLevel: 0,
   maxLevel: 1,
-  quantity: 1,
+  minQuantity: 1,
+  maxQuantity: 1,
+  minValuePc: 0,
+  maxValuePc: 1000000,
   categories: [],
   allowDuplicates: false,
   probabilityMode: "balanced",
@@ -98,10 +102,30 @@ export function loadUIState(): UIState {
                 typeof parsed.lastRollOptions.maxLevel === "number"
                   ? parsed.lastRollOptions.maxLevel
                   : DEFAULT_ROLL_OPTIONS.maxLevel,
-              quantity:
-                typeof parsed.lastRollOptions.quantity === "number"
-                  ? parsed.lastRollOptions.quantity
-                  : DEFAULT_ROLL_OPTIONS.quantity,
+              minLevel:
+                typeof parsed.lastRollOptions.minLevel === "number"
+                  ? parsed.lastRollOptions.minLevel
+                  : DEFAULT_ROLL_OPTIONS.minLevel,
+              minQuantity:
+                typeof parsed.lastRollOptions.minQuantity === "number"
+                  ? parsed.lastRollOptions.minQuantity
+                  : typeof parsed.lastRollOptions.quantity === "number"
+                    ? parsed.lastRollOptions.quantity
+                    : DEFAULT_ROLL_OPTIONS.minQuantity,
+              maxQuantity:
+                typeof parsed.lastRollOptions.maxQuantity === "number"
+                  ? parsed.lastRollOptions.maxQuantity
+                  : typeof parsed.lastRollOptions.quantity === "number"
+                    ? parsed.lastRollOptions.quantity
+                    : DEFAULT_ROLL_OPTIONS.maxQuantity,
+              minValuePc:
+                typeof parsed.lastRollOptions.minValuePc === "number"
+                  ? parsed.lastRollOptions.minValuePc
+                  : DEFAULT_ROLL_OPTIONS.minValuePc,
+              maxValuePc:
+                typeof parsed.lastRollOptions.maxValuePc === "number"
+                  ? parsed.lastRollOptions.maxValuePc
+                  : DEFAULT_ROLL_OPTIONS.maxValuePc,
               categories: Array.isArray(parsed.lastRollOptions.categories)
                 ? parsed.lastRollOptions.categories
                 : DEFAULT_ROLL_OPTIONS.categories,
