@@ -193,12 +193,18 @@ export async function openValidatedRollModal(
       viewportMax
     );
 
-    await OBR.modal.open({
-      id: VALIDATED_ROLL_MODAL_ID,
-      url: "./?view=gain-modal",
-      width: 760,
-      height: computedHeight,
-    });
+    const modalUrl = new URL(
+  `${import.meta.env.BASE_URL}?view=gain-modal`,
+  window.location.origin
+).toString();
+
+await OBR.modal.open({
+  id: VALIDATED_ROLL_MODAL_ID,
+  url: modalUrl,
+  width: 760,
+  height: computedHeight,
+});
+
   } catch (error) {
     console.error("Impossible d'ouvrir la modale de gain Owlbear :", error);
   }
