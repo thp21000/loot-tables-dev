@@ -564,7 +564,7 @@ export default function RollDialog({
                       background: isSelected ? colors.primary : colors.secondary,
                     }}
                   >
-                    {category}
+                    {tCategory(category, language)}
                   </button>
                 );
               })}
