@@ -69,7 +69,26 @@ function fromMap(value: string, language: Language, map: Record<string, string>)
     return normalizedValue;
   }
 
-  return map[normalizedValue] ?? normalizedValue;
+  if (map[normalizedValue]) {
+    return map[normalizedValue];
+  }
+
+  const canonicalize = (term: string) =>
+    term
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  const canonicalValue = canonicalize(normalizedValue);
+
+  for (const [source, translated] of Object.entries(map)) {
+    if (canonicalize(source) === canonicalValue) {
+      return translated;
+    }
+  }
+
+  return normalizedValue;
 }
 
 export function tCategory(value: string, language: Language): string {
