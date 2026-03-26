@@ -9,7 +9,7 @@
   "action": {
     "title": "Loot Tables Dev",
     "icon": "/icon.svg",
-    "popover": "/",
+    "popover": "https://thp21000.github.io/loot-tables-dev/",
     "width": 1150,
     "height": 950
   }
