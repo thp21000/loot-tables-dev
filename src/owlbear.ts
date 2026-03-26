@@ -195,7 +195,7 @@ export async function openValidatedRollModal(
 
     await OBR.modal.open({
       id: VALIDATED_ROLL_MODAL_ID,
-      url: "/?view=gain-modal",
+      url: "./?view=gain-modal",
       width: 760,
       height: computedHeight,
     });
