@@ -193,10 +193,7 @@ export async function openValidatedRollModal(
       viewportMax
     );
 
-    const modalUrl = new URL(
-  `${import.meta.env.BASE_URL}?view=gain-modal`,
-  window.location.origin
-).toString();
+const modalUrl = "https://thp21000.github.io/loot-tables-dev/?view=gain-modal";
 
 await OBR.modal.open({
   id: VALIDATED_ROLL_MODAL_ID,
