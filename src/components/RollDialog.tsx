@@ -247,8 +247,8 @@ export default function RollDialog({
 
   const quantityBounds = { min: 1, max: Math.max(1, tableItems.length) };
 
-  function formatPcBreakdown(valueInPc: number): string {
-    const safeValue = Math.max(0, Math.floor(valueInPc));
+  function formatPcEquivalentValues(valueInPc: number): string {
+    const safeValue = Math.max(0, valueInPc);
     const units: Array<{ code: LootCurrency; factor: number }> =
       currentSystem === "DND5E"
         ? [
@@ -256,31 +256,18 @@ export default function RollDialog({
             { code: "po", factor: 100 },
             { code: "pe", factor: 50 },
             { code: "pa", factor: 10 },
-            { code: "pc", factor: 1 },
           ]
         : [
             { code: "pp", factor: 1000 },
             { code: "po", factor: 100 },
             { code: "pa", factor: 10 },
-            { code: "pc", factor: 1 },
           ];
 
-    let remaining = safeValue;
-    const chunks: string[] = [];
+    const formatNumber = (value: number) => Number(value.toFixed(2)).toString();
 
-    for (const unit of units) {
-      const amount = Math.floor(remaining / unit.factor);
-      remaining -= amount * unit.factor;
-      if (amount > 0) {
-        chunks.push(`${amount} ${tCurrency(unit.code, language)}`);
-      }
-    }
-
-    if (chunks.length === 0) {
-      return `0 ${tCurrency("pc", language)}`;
-    }
-
-    return chunks.join(" + ");
+    return units
+      .map((unit) => `${formatNumber(safeValue / unit.factor)} ${tCurrency(unit.code, language)}`)
+      .join(" / ");
   }
 
   useEffect(() => {
@@ -536,8 +523,8 @@ export default function RollDialog({
                   textAlign: "center",
                 }}
               >
-                {t("roll.valuePreviewMin", { value: formatPcBreakdown(minValuePc) })} ·{" "}
-                {t("roll.valuePreviewMax", { value: formatPcBreakdown(maxValuePc) })}
+                {t("roll.valuePreviewMin", { value: formatPcEquivalentValues(minValuePc) })} ·{" "}
+                {t("roll.valuePreviewMax", { value: formatPcEquivalentValues(maxValuePc) })}
               </p>
             </div>
           </div>
