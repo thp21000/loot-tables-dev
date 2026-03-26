@@ -8,6 +8,7 @@ const fr = {
     "app.title": "Loot Tables",
     "app.subtitle": "Crée et lance des tables de loot pour tes sessions Owlbear.",
     "app.createTable": "Créer une nouvelle table",
+    "app.newTablePrefix": "Nouvelle table",
     "app.transfer": "Importer / Exporter",
     "app.system": "Système",
     "app.language": "Langue",

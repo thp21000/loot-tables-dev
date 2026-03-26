@@ -368,7 +368,7 @@ export default function App() {
 
     const newTable: LootTable = {
       id: crypto.randomUUID(),
-      name: `Nouvelle table ${tables.length + 1}`,
+      name: `${t("app.newTablePrefix")} ${tables.length + 1}`,
       system: currentSystem,
       items: [],
       createdAt: now,
