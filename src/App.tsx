@@ -801,6 +801,10 @@ export default function App() {
     setIsNewsModalOpen(false);
   }
 
+  function switchLanguageFromNews(nextLanguage: "fr" | "en") {
+    setLanguage(nextLanguage);
+  }
+
   const rollingTable =
     rollingTableId === null
       ? null
@@ -1108,6 +1112,52 @@ export default function App() {
         }
       >
         <div style={{ display: "grid", gap: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => switchLanguageFromNews("fr")}
+              style={{
+                ...buttons.icon,
+                width: "40px",
+                height: "32px",
+                border:
+                  language === "fr"
+                    ? `2px solid ${colors.primary}`
+                    : `1px solid ${colors.border}`,
+                background: language === "fr" ? colors.primary : colors.secondary,
+              }}
+              aria-label={t("lang.fr")}
+              title={t("lang.fr")}
+            >
+              <img
+                src={flagFr}
+                alt={t("lang.fr")}
+                style={{ width: "22px", height: "16px", borderRadius: "2px" }}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLanguageFromNews("en")}
+              style={{
+                ...buttons.icon,
+                width: "40px",
+                height: "32px",
+                border:
+                  language === "en"
+                    ? `2px solid ${colors.primary}`
+                    : `1px solid ${colors.border}`,
+                background: language === "en" ? colors.primary : colors.secondary,
+              }}
+              aria-label={t("lang.en")}
+              title={t("lang.en")}
+            >
+              <img
+                src={flagGb}
+                alt={t("lang.en")}
+                style={{ width: "22px", height: "16px", borderRadius: "2px" }}
+              />
+            </button>
+          </div>
           <p style={{ ...typography.pageSubtitle, textAlign: "left", margin: 0 }}>
             {t("news.intro")}
           </p>
