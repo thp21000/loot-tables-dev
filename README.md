@@ -220,6 +220,8 @@ Potion of Healing;https://example.com;Consommable;Potion;Courant;50;po
   - valeur min/max (pc) basée sur les valeurs converties en cuivre des objets de la table
   - quantité max basée sur le nombre d’objets de la table
 - Les bornes min/max peuvent aussi être saisies manuellement via des champs compacts inline.
+- L’aperçu min/max de valeur dans la fenêtre de roll est affiché en équivalences complètes (ex. `pp / po / pe / pa` en DND5E).
+- Les catégories affichées dans la fenêtre de roll utilisent le mapping de traduction centralisé (`gameTerms`) et suivent bien la langue active (FR/EN).
 
 ### Feuille de route
 
@@ -461,6 +463,8 @@ Potion of Healing;https://example.com;Consumable;Potion;Common;50;gp
   - value min/max (cp) based on item values converted to copper
   - quantity max based on the table item count
 - Min/max bounds can also be entered manually using compact inline inputs.
+- Roll value min/max preview is displayed as full currency equivalents (e.g. `pp / po / pe / pa` in DND5E).
+- Category chips displayed in the roll dialog use the shared `gameTerms` translation mapping and follow the active UI language (FR/EN).
 
 ### Roadmap
 

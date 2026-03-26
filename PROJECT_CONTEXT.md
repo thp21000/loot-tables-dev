@@ -418,6 +418,10 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
   - Reconnaissance directe des valeurs EN dans import/collage (category/rarity/type/currency)
   - Normalisation des catégories doublons “Arme/Armes” et “Armure/Armures” vers pluriel
   - Renforcement du collage multiple pour accepter tabulation, `;`, `,`
+  - Correction d’affichage EN des catégories dans `RollDialog` via le mapping centralisé `gameTerms`
+  - Harmonisation de la logique de traduction : `RollDialog` référence désormais la même source que `TableList` / `TableEditor` (pas de mapping local dupliqué)
+  - Amélioration de la robustesse du mapping de `gameTerms` (comparaison tolérante aux accents / apostrophes / séparateurs) pour mieux couvrir les variantes importées
+  - Ajustement de l’aperçu de valeur dans `RollDialog` : affichage en équivalences complètes (`pp / po / pe / pa` en DND5E, `pp / po / pa` en PF2E) au lieu d’une décomposition additive
 - fichiers modifiés :
   - `PROJECT_CONTEXT.md`
   - `src/App.tsx`
@@ -425,6 +429,7 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
   - `src/components/TableList.tsx`
   - `src/components/ResultDialog.tsx`
   - `src/components/SharedGainPage.tsx`
+  - `src/components/RollDialog.tsx`
   - `src/i18n/locales/fr.ts`
   - `src/i18n/locales/en.ts`
   - `src/i18n/gameTerms.ts`
