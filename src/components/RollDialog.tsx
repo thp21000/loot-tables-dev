@@ -211,7 +211,7 @@ export default function RollDialog({
   onConfirm,
   onShowAlert,
 }: RollDialogProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [minLevel, setMinLevel] = useState(0);
   const [maxLevel, setMaxLevel] = useState(1);
   const [minQuantity, setMinQuantity] = useState(1);
