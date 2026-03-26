@@ -1275,6 +1275,7 @@ export default function App() {
       <RollDialog
         key={`roll-dialog-${language}`}
         isOpen={rollingTable !== null}
+        currentSystem={currentSystem}
         tableName={rollingTable?.name ?? ""}
         tableItems={rollingTable?.items ?? []}
         availableCategories={

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import type { LootCategory, ProbabilityMode, RollOptions } from "../types";
+import type { GameSystem, LootCategory, LootCurrency, ProbabilityMode, RollOptions } from "../types";
 import { buttons, controls, colors, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
+import { tCategory, tCurrency } from "../i18n/gameTerms";
 
 type RollDialogProps = {
   isOpen: boolean;
+  currentSystem: GameSystem;
   tableName: string;
   tableItems: Array<{ level: number; valueAmount: number; valueCurrency: "pc" | "pa" | "pe" | "po" | "pp" }>;
   availableCategories: LootCategory[];
@@ -200,6 +202,7 @@ function DualSlider({
 
 export default function RollDialog({
   isOpen,
+  currentSystem,
   tableName,
   tableItems,
   availableCategories,
@@ -243,6 +246,42 @@ export default function RollDialog({
   })();
 
   const quantityBounds = { min: 1, max: Math.max(1, tableItems.length) };
+
+  function formatPcBreakdown(valueInPc: number): string {
+    const safeValue = Math.max(0, Math.floor(valueInPc));
+    const units: Array<{ code: LootCurrency; factor: number }> =
+      currentSystem === "DND5E"
+        ? [
+            { code: "pp", factor: 1000 },
+            { code: "po", factor: 100 },
+            { code: "pe", factor: 50 },
+            { code: "pa", factor: 10 },
+            { code: "pc", factor: 1 },
+          ]
+        : [
+            { code: "pp", factor: 1000 },
+            { code: "po", factor: 100 },
+            { code: "pa", factor: 10 },
+            { code: "pc", factor: 1 },
+          ];
+
+    let remaining = safeValue;
+    const chunks: string[] = [];
+
+    for (const unit of units) {
+      const amount = Math.floor(remaining / unit.factor);
+      remaining -= amount * unit.factor;
+      if (amount > 0) {
+        chunks.push(`${amount} ${tCurrency(unit.code, language)}`);
+      }
+    }
+
+    if (chunks.length === 0) {
+      return `0 ${tCurrency("pc", language)}`;
+    }
+
+    return chunks.join(" + ");
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -473,7 +512,7 @@ export default function RollDialog({
                   }}
                   style={{ ...controls.input, width: "110px", padding: "6px 8px" }}
                 />
-                <span>pc</span>
+                <span>{tCurrency("pc", language)}</span>
                 <span>{t("roll.max")}</span>
                 <input
                   type="number"
@@ -488,8 +527,18 @@ export default function RollDialog({
                   }}
                   style={{ ...controls.input, width: "110px", padding: "6px 8px" }}
                 />
-                <span>pc</span>
+                <span>{tCurrency("pc", language)}</span>
               </div>
+              <p
+                style={{
+                  ...typography.pageSubtitle,
+                  margin: 0,
+                  textAlign: "center",
+                }}
+              >
+                {t("roll.valuePreviewMin", { value: formatPcBreakdown(minValuePc) })} ·{" "}
+                {t("roll.valuePreviewMax", { value: formatPcBreakdown(maxValuePc) })}
+              </p>
             </div>
           </div>
 

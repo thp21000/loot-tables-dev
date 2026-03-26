@@ -134,6 +134,8 @@ const fr = {
     "roll.levelRange": "Plage de niveau",
     "roll.quantityRange": "Plage du nombre d’objets",
     "roll.valueRangePc": "Plage de valeur (pc)",
+    "roll.valuePreviewMin": "Min ≈ {value}",
+    "roll.valuePreviewMax": "Max ≈ {value}",
     "roll.min": "min",
     "roll.max": "max",
     "roll.mode": "Mode de probabilité",

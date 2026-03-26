@@ -134,6 +134,8 @@ const en = {
     "roll.levelRange": "Level range",
     "roll.quantityRange": "Item count range",
     "roll.valueRangePc": "Value range (cp)",
+    "roll.valuePreviewMin": "Min ≈ {value}",
+    "roll.valuePreviewMax": "Max ≈ {value}",
     "roll.min": "min",
     "roll.max": "max",
     "roll.mode": "Probability mode",
