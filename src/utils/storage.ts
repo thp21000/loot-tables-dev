@@ -1,7 +1,10 @@
 import type {
   GameSystem,
   ItemSortMode,
+  LootCategory,
+  LootCurrency,
   LootItem,
+  LootRarity,
   LootTable,
   RollOptions,
   TableSortMode,
@@ -35,6 +38,107 @@ const DEFAULT_UI_STATE: UIState = {
   lastRollOptions: DEFAULT_ROLL_OPTIONS,
 };
 
+function normalizeCategory(value: string): LootCategory {
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "arme" || normalized === "armes" || normalized === "weapon" || normalized === "weapons") {
+    return "Armes";
+  }
+
+  if (normalized === "armure" || normalized === "armures" || normalized === "armor" || normalized === "armors") {
+    return "Armures";
+  }
+
+  if (normalized === "consommable" || normalized === "consumable") return "Consommable";
+  if (normalized === "contenant" || normalized === "container") return "Contenant";
+  if (normalized === "equipement" || normalized === "équipement" || normalized === "equipment") return "Equipement";
+  if (normalized === "équipement d'aventurier" || normalized === "equipement d'aventurier" || normalized === "adventuring gear") {
+    return "Équipement d'aventurier";
+  }
+  if (normalized === "outils" || normalized === "tools") return "Outils";
+  if (normalized === "montures et véhicules" || normalized === "mounts & vehicles") return "Montures et véhicules";
+  if (normalized === "marchandises" || normalized === "trade goods") return "Marchandises";
+  if (normalized === "objets magiques" || normalized === "magic items") return "Objets magiques";
+  if (normalized === "poisons" || normalized === "poison") return "Poisons";
+  if (normalized === "herbes" || normalized === "herbs") return "Herbes";
+  if (normalized === "trésor" || normalized === "tresor" || normalized === "treasure") return "Trésor";
+
+  return "Autre";
+}
+
+function normalizeRarity(value: string): LootRarity {
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "aucun" || normalized === "none") return "Aucun";
+  if (normalized === "courant" || normalized === "common") return "Courant";
+  if (normalized === "peu courant" || normalized === "uncommon") return "Peu courant";
+  if (normalized === "rare") return "Rare";
+  if (normalized === "unique") return "Unique";
+  if (normalized === "commun (niv 1)" || normalized === "common (lvl 1)") return "Commun (niv 1)";
+  if (normalized === "peu commun (niv 1)" || normalized === "uncommon (lvl 1)") return "Peu commun (niv 1)";
+  if (normalized === "très rare (niv 11)" || normalized === "tres rare (niv 11)" || normalized === "very rare (lvl 11)") {
+    return "Très rare (niv 11)";
+  }
+  if (normalized === "légendaire (niv 17)" || normalized === "legendaire (niv 17)" || normalized === "legendary (lvl 17)") {
+    return "Légendaire (niv 17)";
+  }
+  if (normalized === "artéfact" || normalized === "artefact" || normalized === "artifact") return "Artéfact";
+
+  return "Aucun";
+}
+
+function normalizeType(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return "Aucun";
+
+  if (normalized === "none") return "Aucun";
+  if (normalized === "ring") return "Anneau";
+  if (normalized === "weapon") return "Arme";
+  if (normalized === "armor") return "Armure";
+  if (normalized === "wand") return "Baguette";
+  if (normalized === "staff") return "Bâton";
+  if (normalized === "wondrous item") return "Objets merveilleux";
+  if (normalized === "scroll") return "Parchemin";
+  if (normalized === "potion") return "Potion";
+  if (normalized === "rod") return "Sceptre";
+  if (normalized === "plant") return "Plante";
+  if (normalized === "venom") return "Venin";
+  if (normalized === "toxin") return "Toxine";
+  if (normalized === "mixture") return "Mixture";
+  if (normalized === "altering") return "Altérant";
+  if (normalized === "antidote") return "Antipoison";
+  if (normalized === "healing") return "Curatif";
+  if (normalized === "booster") return "Dopant";
+  if (normalized === "fortifying") return "Fortifiant";
+
+  return value.trim() || "Aucun";
+}
+
+function normalizeCurrency(value: string, system: GameSystem): LootCurrency {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "pc" || normalized === "cp") return "pc";
+  if (normalized === "pa" || normalized === "sp") return "pa";
+  if (normalized === "po" || normalized === "gp") return "po";
+  if (normalized === "pp") return "pp";
+  if ((normalized === "pe" || normalized === "ep") && system === "DND5E") return "pe";
+
+  return "pc";
+}
+
+function normalizeItem(item: Partial<LootItem>, system: GameSystem): LootItem {
+  return {
+    id: item.id ?? crypto.randomUUID(),
+    name: (item.name ?? "").trim(),
+    url: (item.url ?? "").trim(),
+    level: Number(item.level) || 0,
+    category: normalizeCategory(item.category ?? ""),
+    type: normalizeType(item.type ?? "Aucun"),
+    rarity: normalizeRarity(item.rarity ?? ""),
+    valueAmount: Number(item.valueAmount) || 0,
+    valueCurrency: normalizeCurrency(item.valueCurrency ?? "pc", system),
+  };
+}
+
 export function loadTables(system: GameSystem): LootTable[] {
   try {
     const raw = localStorage.getItem(getStorageKey(system));
@@ -50,10 +154,7 @@ export function loadTables(system: GameSystem): LootTable[] {
       ...table,
       system,
       items: Array.isArray(table.items)
-        ? table.items.map((item: LootItem) => ({
-            ...item,
-            type: item.type ?? "Aucun",
-          }))
+        ? table.items.map((item: LootItem) => normalizeItem(item, system))
         : [],
     }));
   } catch (error) {
@@ -283,7 +384,15 @@ export async function importTablesFromFile(file: File): Promise<LootTable[]> {
     throw new Error("Format JSON invalide.");
   }
 
-  return parsed;
+  return parsed.map((table) => ({
+    ...table,
+    system: table.system === "DND5E" ? "DND5E" : "PF2E",
+    items: Array.isArray(table.items)
+      ? table.items.map((item: LootItem) =>
+          normalizeItem(item, table.system === "DND5E" ? "DND5E" : "PF2E")
+        )
+      : [],
+  }));
 }
 
 export function mergeImportedTables(
@@ -404,11 +513,11 @@ export async function importSingleTableFromCsv(
         name: values[0],
         url: values[1],
         level: Number(values[2]) || 0,
-        category: (values[3] as LootItem["category"]) || "Autre",
+        category: normalizeCategory(values[3]),
         type: "Aucun",
-        rarity: (values[4] as LootItem["rarity"]) || "Courant",
+        rarity: normalizeRarity(values[4]),
         valueAmount: Number(values[5]) || 0,
-        valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+        valueCurrency: normalizeCurrency(values[6], system),
       };
     }
 
@@ -417,11 +526,11 @@ export async function importSingleTableFromCsv(
       name: values[0],
       url: values[1],
       level: 0,
-      category: (values[2] as LootItem["category"]) || "Autre",
-      type: values[3] || "Aucun",
-      rarity: (values[4] as LootItem["rarity"]) || "Aucun",
+      category: normalizeCategory(values[2]),
+      type: normalizeType(values[3] || "Aucun"),
+      rarity: normalizeRarity(values[4]),
       valueAmount: Number(values[5]) || 0,
-      valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+      valueCurrency: normalizeCurrency(values[6], system),
     };
   });
 
@@ -481,11 +590,11 @@ export async function importItemsFromCsvFile(
         name: values[0],
         url: values[1],
         level: Number(values[2]) || 0,
-        category: (values[3] as LootItem["category"]) || "Autre",
+        category: normalizeCategory(values[3]),
         type: "Aucun",
-        rarity: (values[4] as LootItem["rarity"]) || "Courant",
+        rarity: normalizeRarity(values[4]),
         valueAmount: Number(values[5]) || 0,
-        valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+        valueCurrency: normalizeCurrency(values[6], system),
       };
     }
 
@@ -494,11 +603,11 @@ export async function importItemsFromCsvFile(
       name: values[0],
       url: values[1],
       level: 0,
-      category: (values[2] as LootItem["category"]) || "Autre",
-      type: values[3] || "Aucun",
-      rarity: (values[4] as LootItem["rarity"]) || "Aucun",
+      category: normalizeCategory(values[2]),
+      type: normalizeType(values[3] || "Aucun"),
+      rarity: normalizeRarity(values[4]),
       valueAmount: Number(values[5]) || 0,
-      valueCurrency: (values[6] as LootItem["valueCurrency"]) || "pc",
+      valueCurrency: normalizeCurrency(values[6], system),
     };
   });
 }

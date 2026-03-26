@@ -27,8 +27,8 @@ type EditableLootItem = LootItem & {
 // L’affichage est localisé via tCategory/tRarity/tType dans le rendu.
 
 const PF2E_CATEGORY_OPTIONS: LootCategory[] = [
-  "Arme",
-  "Armure",
+  "Armes",
+  "Armures",
   "Consommable",
   "Contenant",
   "Equipement",
@@ -117,16 +117,28 @@ function getRarityColor(rarity: LootRarity): string {
 }
 
 function normalizePastedCategory(value: string): LootCategory {
-  if (
-    value === "Arme" ||
-    value === "Armure" ||
-    value === "Consommable" ||
-    value === "Contenant" ||
-    value === "Equipement" ||
-    value === "Trésor"
-  ) {
-    return value;
+    const normalized = value.trim().toLowerCase();
+
+  if (normalized === "arme" || normalized === "armes" || normalized === "weapon" || normalized === "weapons") {
+    return "Armes";
   }
+  if (normalized === "armure" || normalized === "armures" || normalized === "armor" || normalized === "armors") {
+    return "Armures";
+  }
+  if (normalized === "consommable" || normalized === "consumable") return "Consommable";
+  if (normalized === "contenant" || normalized === "container") return "Contenant";
+  if (normalized === "equipement" || normalized === "équipement" || normalized === "equipment") return "Equipement";
+  if (normalized === "trésor" || normalized === "tresor" || normalized === "treasure") return "Trésor";
+  if (normalized === "équipement d'aventurier" || normalized === "equipement d'aventurier" || normalized === "adventuring gear") {
+    return "Équipement d'aventurier";
+  }
+  if (normalized === "outils" || normalized === "tools") return "Outils";
+  if (normalized === "montures et véhicules" || normalized === "mounts & vehicles") return "Montures et véhicules";
+  if (normalized === "marchandises" || normalized === "trade goods") return "Marchandises";
+  if (normalized === "objets magiques" || normalized === "magic items") return "Objets magiques";
+  if (normalized === "poisons" || normalized === "poison") return "Poisons";
+  if (normalized === "herbes" || normalized === "herbs") return "Herbes";
+  
   return "Autre";
 }
 
