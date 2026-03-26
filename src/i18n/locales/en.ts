@@ -111,7 +111,7 @@ const en = {
     "editor.pasteToggleShow": "▶ Show multi-paste from Excel",
     "editor.pasteToggleHide": "▼ Hide multi-paste from Excel",
     "editor.pasteTitle": "Multi-paste from Excel",
-    "editor.pasteHelp": "Paste tab-separated rows in this order: name, url, level, category, rarity, amount, currency.",
+    "editor.pasteHelp": "Paste rows (tab, ';' or ',') in this order: name, url, level, category, rarity, amount, currency.",
     "editor.pasteImport": "Import paste into this table",
     "editor.saveTable": "Save table",
     "editor.cancel": "Cancel",

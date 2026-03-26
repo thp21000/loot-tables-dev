@@ -111,7 +111,7 @@ const fr = {
     "editor.pasteToggleShow": "▶ Afficher le collage multiple depuis Excel",
     "editor.pasteToggleHide": "▼ Masquer le collage multiple depuis Excel",
     "editor.pasteTitle": "Collage multiple depuis Excel",
-    "editor.pasteHelp": "Colle des lignes tabulées dans cet ordre : nom, url, level, catégorie, rareté, montant, devise.",
+    "editor.pasteHelp": "Colle des lignes (tabulation, ';' ou ',') dans cet ordre : nom, url, level, catégorie, rareté, montant, devise.",
     "editor.pasteImport": "Importer le collage dans cette table",
     "editor.saveTable": "Enregistrer la table",
     "editor.cancel": "Annuler",

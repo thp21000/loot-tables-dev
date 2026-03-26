@@ -165,7 +165,21 @@ function parsePastedRows(text: string): LootItem[] {
   }
 
   return lines.map((line) => {
-    const parts = line.split("\t");
+    const parts = (() => {
+      if (line.includes("\t")) {
+        return line.split("\t");
+      }
+
+      if (line.includes(";")) {
+        return line.split(";");
+      }
+
+      if (line.includes(",")) {
+        return line.split(",");
+      }
+
+      return [line];
+    })();
 
     return {
       id: crypto.randomUUID(),
