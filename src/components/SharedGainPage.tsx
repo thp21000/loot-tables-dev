@@ -12,7 +12,7 @@ import {
 } from "../owlbear";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
-import { tCategory, tRarity } from "../i18n/gameTerms";
+import { tCategory, tCurrency, tRarity } from "../i18n/gameTerms";
 
 function getRarityColor(rarity: string): string {
   if (rarity === "Courant") return "#9ca3af";
@@ -227,7 +227,7 @@ export default function SharedGainPage() {
 
                       {playerRole === "GM" ? (
                         <div style={{ color: colors.textMuted }}>
-                          {item.valueAmount} {item.valueCurrency}
+                          {item.valueAmount} {tCurrency(item.valueCurrency, language)}
                         </div>
                       ) : null}
                     </div>

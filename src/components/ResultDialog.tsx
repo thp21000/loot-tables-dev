@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { OwlbearPlayerRole, ProbabilityMode, RollResult } from "../types";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
-import { tCategory, tRarity } from "../i18n/gameTerms";
+import { tCategory, tCurrency, tRarity } from "../i18n/gameTerms";
 
 type ResultDialogProps = {
   isOpen: boolean;
@@ -62,7 +62,7 @@ function formatResultText(
     ? [t("result.noItem")]
       : result.items.map(
         (item, index) =>
-          `${index + 1}. ${item.name} — ${t("result.level", { level: item.level })} — ${tCategory(item.category, language)} — ${tRarity(item.rarity, language)} — ${item.valueAmount} ${item.valueCurrency}${item.url ? ` — ${item.url}` : ""}`
+         `${index + 1}. ${item.name} — ${t("result.level", { level: item.level })} — ${tCategory(item.category, language)} — ${tRarity(item.rarity, language)} — ${item.valueAmount} ${tCurrency(item.valueCurrency, language)}${item.url ? ` — ${item.url}` : ""}`
       );
 
   return [header, options, categories, "", ...items].join("\n");
@@ -199,7 +199,7 @@ export default function ResultDialog({
                   </div>
 
                   <div style={{ color: colors.textMuted }}>
-                    {item.valueAmount} {item.valueCurrency}
+                    {item.valueAmount} {tCurrency(item.valueCurrency, language)}
                   </div>
                 </div>
 

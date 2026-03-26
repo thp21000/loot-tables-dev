@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import TableEditor from "./TableEditor";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
-import { tCategory, tRarity, tType } from "../i18n/gameTerms";
+import { tCategory, tCurrency, tRarity, tType } from "../i18n/gameTerms";
 
 type TableListProps = {
   tables: LootTable[];
@@ -492,7 +492,9 @@ export default function TableList({
                                     >
                                       {tRarity(item.rarity, currentLanguage)}
                                     </div>
-                                    <div>{item.valueAmount} {item.valueCurrency}</div>
+                                    <div>
+                                      {item.valueAmount} {tCurrency(item.valueCurrency, currentLanguage)}
+                                    </div>
                                   </div>
                                 ))}
                               </div>

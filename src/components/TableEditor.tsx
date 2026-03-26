@@ -9,7 +9,7 @@ import type {
 } from "../types";
 import { buttons, colors, controls, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
-import { tCategory, tRarity, tType } from "../i18n/gameTerms";
+import { getCurrencyOptions, tCategory, tCurrency, tRarity, tType } from "../i18n/gameTerms";
 
 type TableEditorProps = {
   table: LootTable;
@@ -87,7 +87,6 @@ const DND5E_RARITY_OPTIONS: LootRarity[] = [
   "Artéfact",
 ];
 
-const CURRENCY_OPTIONS: LootCurrency[] = ["pc", "pa", "pe", "po", "pp"];
 const EDITOR_ITEM_GRID_TEMPLATE_PF2E =
   "minmax(220px, 300px) minmax(160px, 220px) 86px 130px 130px 160px auto";
 const EDITOR_ITEM_GRID_TEMPLATE_DND5E =
@@ -144,9 +143,14 @@ function normalizePastedRarity(value: string): LootRarity {
 }
 
 function normalizePastedCurrency(value: string): LootCurrency {
-  if (value === "pc" || value === "pa" || value === "po" || value === "pp") {
-    return value;
-  }
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "pc" || normalized === "cp") return "pc";
+  if (normalized === "pa" || normalized === "sp") return "pa";
+  if (normalized === "pe" || normalized === "ep") return "pe";
+  if (normalized === "po" || normalized === "gp") return "po";
+  if (normalized === "pp") return "pp";
+
   return "pc";
 }
 
@@ -189,6 +193,7 @@ export default function TableEditor({
     currentSystem === "DND5E" ? DND5E_CATEGORY_OPTIONS : PF2E_CATEGORY_OPTIONS;
   const rarityOptions =
     currentSystem === "DND5E" ? DND5E_RARITY_OPTIONS : PF2E_RARITY_OPTIONS;
+  const currencyOptions = getCurrencyOptions(currentSystem);
   const editorItemGridTemplate =
     currentSystem === "DND5E"
       ? EDITOR_ITEM_GRID_TEMPLATE_DND5E
@@ -586,9 +591,9 @@ export default function TableEditor({
                     }
                     style={{ ...controls.select, textAlign: "center" }}
                   >
-                    {CURRENCY_OPTIONS.map((option) => (
+                    {currencyOptions.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {tCurrency(option, language)}
                       </option>
                     ))}
                   </select>
@@ -657,7 +662,9 @@ export default function TableEditor({
                 <div style={{ color: getRarityColor(item.rarity), fontWeight: 700 }}>
                 {tRarity(item.rarity, language)}
               </div>
-              <div>{item.valueAmount} {item.valueCurrency}</div>
+              <div>
+                {item.valueAmount} {tCurrency(item.valueCurrency, language)}
+              </div>
 
               <div style={layout.centerRow}>
                 <button title={t("editor.alt.edit")} aria-label={t("editor.alt.edit")} onClick={() => handleEditItem(item.id)} style={buttons.icon}>

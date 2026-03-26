@@ -1,4 +1,5 @@
 import type { Language } from "./index";
+import type { GameSystem, LootCurrency } from "../types";
 
 const categoryEn: Record<string, string> = {
   Arme: "Weapon",
@@ -54,6 +55,14 @@ const typeEn: Record<string, string> = {
   Fortifiant: "Fortifying",
 };
 
+const currencyEn: Record<LootCurrency, string> = {
+  pc: "cp",
+  pa: "sp",
+  pe: "ep",
+  po: "gp",
+  pp: "pp",
+};
+
 function fromMap(value: string, language: Language, map: Record<string, string>): string {
   const normalizedValue = value.trim();
   if (language === "fr") {
@@ -73,4 +82,20 @@ export function tRarity(value: string, language: Language): string {
 
 export function tType(value: string, language: Language): string {
   return fromMap(value, language, typeEn);
+}
+
+export function getCurrencyOptions(system: GameSystem): LootCurrency[] {
+  if (system === "PF2E") {
+    return ["pc", "pa", "po", "pp"];
+  }
+
+  return ["pc", "pa", "pe", "po", "pp"];
+}
+
+export function tCurrency(value: LootCurrency, language: Language): string {
+  if (language === "fr") {
+    return value;
+  }
+
+  return currencyEn[value] ?? value;
 }
