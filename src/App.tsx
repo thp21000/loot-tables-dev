@@ -169,6 +169,7 @@ function getRoleLabel(
 type TransferAction = "import" | "export";
 type TransferScope = "global" | "table" | "new-table";
 type TransferFormat = "json" | "csv";
+const NEWS_SEEN_SESSION_KEY = "loot-tables-news-seen-v1";
 
 export default function App() {
   const { language, setLanguage, t } = useI18n();
@@ -216,6 +217,7 @@ export default function App() {
   const [transferTableId, setTransferTableId] = useState<string>("");
   const [transferImportMode, setTransferImportMode] = useState<ImportMode>("append");
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
 
   useEffect(() => {
     const hasSystemChanged = lastSystemForSaveRef.current !== currentSystem;
@@ -265,6 +267,14 @@ export default function App() {
       setTransferTableId(tables[0].id);
     }
   }, [tables, transferTableId]);
+
+  useEffect(() => {
+    const hasSeenNews = sessionStorage.getItem(NEWS_SEEN_SESSION_KEY) === "1";
+    if (!hasSeenNews) {
+      setIsNewsModalOpen(true);
+      sessionStorage.setItem(NEWS_SEEN_SESSION_KEY, "1");
+    }
+  }, []);
 
   useEffect(() => {
     let unsubscribeRoom: (() => void) | null = null;
@@ -782,6 +792,15 @@ export default function App() {
     setIsSettingsModalOpen(false);
   }
 
+  function openNewsModal() {
+    setIsNewsModalOpen(true);
+    sessionStorage.setItem(NEWS_SEEN_SESSION_KEY, "1");
+  }
+
+  function closeNewsModal() {
+    setIsNewsModalOpen(false);
+  }
+
   const rollingTable =
     rollingTableId === null
       ? null
@@ -1064,8 +1083,43 @@ export default function App() {
                 />
                 <span>{t("lang.en")}</span>
               </button>
+              </div>
+              </div>
+
+              <div>
+                <p style={{ ...typography.label, marginBottom: "8px" }}>
+                  {t("app.settings.news")}
+                </p>
+                <button type="button" onClick={openNewsModal} style={buttons.secondary}>
+                  {t("app.settings.news.open")}
+                </button>
+              </div>
             </div>
-          </div>
+          </Modal>
+
+      <Modal
+        isOpen={isNewsModalOpen}
+        title={t("news.title")}
+        onClose={closeNewsModal}
+        footer={
+          <button type="button" onClick={closeNewsModal} style={buttons.primary}>
+            {t("common.close")}
+          </button>
+        }
+      >
+        <div style={{ display: "grid", gap: "10px" }}>
+          <p style={{ ...typography.pageSubtitle, textAlign: "left", margin: 0 }}>
+            {t("news.intro")}
+          </p>
+          <ul style={{ margin: 0, paddingLeft: "18px", color: colors.textSoft, lineHeight: 1.45 }}>
+            <li>{t("news.item.1")}</li>
+            <li>{t("news.item.2")}</li>
+            <li>{t("news.item.3")}</li>
+            <li>{t("news.item.4")}</li>
+          </ul>
+          <p style={{ ...typography.pageSubtitle, textAlign: "left", marginBottom: 0 }}>
+            {t("news.important")}
+          </p>
         </div>
       </Modal>
 

@@ -53,6 +53,8 @@ const fr = {
     "app.settings.title": "Paramètres",
     "app.settings.system": "Système de jeu",
     "app.settings.language": "Langue",
+    "app.settings.news": "Actualités",
+    "app.settings.news.open": "Ouvrir les news",
     "app.settings.system.pf2e": "Pathfinder 2e",
     "app.settings.system.dnd5e": "DnD 5e",
     "app.delete.title": "Supprimer la table",
@@ -174,6 +176,13 @@ const fr = {
     "gain.loading": "Chargement du butin…",
     "gain.empty": "Aucun gain validé à afficher.",
     "gain.noItem": "Aucun objet trouvé.",
+    "news.title": "News & mises à jour",
+    "news.intro": "Résumé des dernières évolutions de l’application :",
+    "news.item.1": "Support multi-systèmes PF2E / DND5E avec stockage séparé.",
+    "news.item.2": "Paramètres centralisés (langue, système) et import/export unifié.",
+    "news.item.3": "Roll avancé avec bornes min/max et modes de probabilité étendus.",
+    "news.item.4": "Imports/collages robustes (FR/EN, séparateurs multiples, normalisation).",
+    "news.important": "Important : pensez à exporter régulièrement vos tables en JSON pour éviter toute perte locale.",
     };
   
   export default fr;

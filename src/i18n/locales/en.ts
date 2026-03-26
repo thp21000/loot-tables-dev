@@ -53,6 +53,8 @@ const en = {
     "app.settings.title": "Settings",
     "app.settings.system": "Game system",
     "app.settings.language": "Language",
+    "app.settings.news": "News",
+    "app.settings.news.open": "Open news",
     "app.settings.system.pf2e": "Pathfinder 2e",
     "app.settings.system.dnd5e": "DnD 5e",
     "app.delete.title": "Delete table",
@@ -174,6 +176,13 @@ const en = {
     "gain.loading": "Loading loot…",
     "gain.empty": "No validated loot to display.",
     "gain.noItem": "No item found.",
+    "news.title": "News & updates",
+    "news.intro": "Summary of the latest application changes:",
+    "news.item.1": "PF2E / DND5E multi-system support with separated storage.",
+    "news.item.2": "Centralized settings (language/system) and unified import/export flow.",
+    "news.item.3": "Advanced roll with min/max ranges and extended probability modes.",
+    "news.item.4": "Robust imports/paste flow (FR/EN terms, multiple separators, normalization).",
+    "news.important": "Important: export your tables to JSON regularly to prevent local data loss.",
   };
   
   export default en;

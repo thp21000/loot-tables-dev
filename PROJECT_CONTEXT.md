@@ -64,14 +64,20 @@
   - Bornes de roll automatiquement dérivées de la table + saisie manuelle inline des min/max
   - En mode édition de table : barre d’actions flottante (Enregistrer/Annuler) visible pendant le scroll
   - Bouton “remonter en haut” dans la même zone flottante de l’éditeur
+  - Traduction automatique des devises selon système/langue (ex. EN: cp/sp/ep/gp/pp)
+  - Liste des devises filtrée par système (PF2E sans `pe`/`ep`, DND5E avec `pe`/`ep`)
+  - Import/collage CSV/JSON tolérant les termes FR/EN pour catégorie/rareté/type
+  - Normalisation des catégories arme/armure vers les formes plurielles (`Armes`, `Armures`)
+  - Collage multiple depuis Excel tolérant tabulation, `;` et `,`
+- Ce qui est en cours :
 
 - Ce qui est en cours :
-  - Relecture UX des traductions FR/EN et homogénéisation terminologique
+  - Relecture UX des traductions FR/EN et homogénéisation terminologique (notamment termes importés EN→FR)
   - Validation terrain du roll avancé (bornes automatiques, sliders, champs manuels)
 
 - Ce qui bloque :
   - Le popover Owlbear reste dépendant des limites de rendu de la plateforme ; même avec redimensionnement dynamique, le comportement réel doit encore être validé dans Owlbear sur plusieurs cas d’usage.
-  - La migration/lisibilité des anciens exports hétérogènes (avant séparation PF2E/DND5E) nécessite encore des tests utilisateurs réels.
+  - La migration/lisibilité des anciens exports hétérogènes (avant séparation PF2E/DND5E) nécessite encore des tests utilisateurs réels, malgré la nouvelle couche de normalisation.
 
 ## Architecture du projet
 - `public/manifest.json`
@@ -130,6 +136,7 @@
   - Import/export JSON/CSV
   - Clés de stockage distinctes par système (PF2E / DND5E)
   - Adaptation du format CSV selon le système de la table
+  - Normalisation des entrées FR/EN (catégorie, rareté, type, devise) au chargement et à l’import
 - `src/utils/loot.ts`
   - Logique de tirage, probabilités, catégories disponibles
   - Application des filtres min/max niveau, quantité, valeur (cuivre)
@@ -139,6 +146,7 @@
   - Dictionnaires de traductions de l’interface
 - `src/i18n/gameTerms.ts`
   - Mapping localisé des termes de jeu selon système/langue
+  - Mapping de devise selon langue + options de devises autorisées selon système
 - `src/assets/flag-fr.svg` / `src/assets/flag-gb.svg`
   - Icônes de drapeau utilisées dans la modal Paramètres
 
@@ -171,12 +179,17 @@
 - [x] Fenêtre Paramètres (engrenage) pour regrouper système + langue
 - [x] Boutons de langue avec drapeaux SVG (FR/EN)
 - [x] Mapping localisé des termes de jeu (catégories/raretés/types)
+- [x] Traduction automatique des devises selon langue (FR/EN)
+- [x] Filtrage des devises par système (PF2E sans pe/ep)
 - [x] Champs item étendus (type) pour couvrir DND5E
 - [x] Import CSV en nouvelle table
 - [x] Import CSV dans une table existante
 - [x] Choix ajouter/remplacer lors d’un import CSV dans une table
 - [x] Détection de doublons simples à l’import
 - [x] Collage multiple depuis Excel
+- [x] Collage multiple tolérant tabulation + point-virgule + virgule
+- [x] Reconnaissance des termes EN/FR en import/collage (catégorie, rareté, type, devise)
+- [x] Normalisation des catégories arme/armure vers les formes plurielles
 - [x] Barre flottante d’actions en édition de table (Enregistrer / Annuler)
 - [x] Bouton de remontée rapide en haut de page dans l’éditeur
 - [x] Correction d’encodage UTF-8 CSV
@@ -249,6 +262,9 @@ Depuis la dernière mise à jour, le périmètre fonctionnel a encore évolué :
 - sélecteurs système/langue déplacés dans une modal Paramètres (engrenage), avec boutons visuels
 - drapeaux de langue passés sur des assets SVG explicites (plus robustes que le rendu emoji selon plateforme)
 - mode édition de table amélioré avec actions flottantes persistantes + bouton de remontée rapide
+- devises localisées selon langue/système, avec exclusion de `pe/ep` pour PF2E
+- import/collage rendu plus permissif et robuste (FR+EN, séparateurs multiples)
+- normalisation automatique des catégories/raretés/types pour réduire les incohérences de données
 
 Le sujet encore ouvert n’est plus une refonte du comportement global, mais un polish visuel ciblé du popover principal dans Owlbear :
 - vérifier que la largeur dynamique reste agréable selon les cas réels
@@ -397,14 +413,24 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
   - Remplacement des drapeaux emoji par de vraies icônes de drapeau SVG dans les boutons de langue
   - Ajout d’une barre d’actions flottante en édition de table (Enregistrer / Annuler)
   - Ajout d’un bouton de remontée rapide en haut de page dans l’éditeur
+  - Traduction des devises à l’affichage selon langue active (FR/EN)
+  - Restriction des devises proposées selon système de jeu (PF2E sans pe/ep)
+  - Reconnaissance directe des valeurs EN dans import/collage (category/rarity/type/currency)
+  - Normalisation des catégories doublons “Arme/Armes” et “Armure/Armures” vers pluriel
+  - Renforcement du collage multiple pour accepter tabulation, `;`, `,`
 - fichiers modifiés :
   - `PROJECT_CONTEXT.md`
   - `src/App.tsx`
   - `src/components/TableEditor.tsx`
+  - `src/components/TableList.tsx`
+  - `src/components/ResultDialog.tsx`
+  - `src/components/SharedGainPage.tsx`
   - `src/i18n/locales/fr.ts`
   - `src/i18n/locales/en.ts`
+  - `src/i18n/gameTerms.ts`
   - `src/assets/flag-fr.svg`
   - `src/assets/flag-gb.svg`
+  - `src/utils/storage.ts`
 - décisions prises :
   - Conserver les préférences de système/langue dans une modal dédiée pour alléger la barre d’actions principale
   - Utiliser des drapeaux SVG pour garantir un rendu cohérent des icônes de langue selon OS/navigateurs
@@ -412,6 +438,12 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
 - problèmes restants :
   - Vérifier en conditions Owlbear réelles que la barre flottante n’empiète pas sur certaines zones interactives
   - Ajuster au besoin l’espacement mobile/popover très étroit si overlap sur petits écrans
+  - Garder un format canonique interne FR pour les données, tout en acceptant la saisie/import EN en entrée
+  - Normaliser les catégories arme/armure en pluriel pour éviter les doublons visuels et de tri
+  - Rendre le collage plus permissif sans casser le format tabulé initial
+- problèmes restants :
+  - Vérifier en import utilisateurs réels des fichiers CSV hétérogènes (quoting, accents, colonnes partiellement traduites)
+  - Continuer la validation Owlbear réelle (popover + overlays flottants) sur diverses tailles d’écran
 
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.

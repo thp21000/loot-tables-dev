@@ -11,6 +11,7 @@ Une extension Owlbear Rodeo pour créer, modifier, importer, exporter et lancer 
 
 - Création et modification de tables de loot
 - Support des systèmes **PF2E** et **DND5E** (sélecteur dans l’UI)
+- Sélecteur système/langue dans **Paramètres** (bouton engrenage), avec drapeaux FR/EN
 - Gestion d'objets avec :
   - nom
   - lien de fiche
@@ -26,6 +27,12 @@ Une extension Owlbear Rodeo pour créer, modifier, importer, exporter et lancer 
 - Import / export CSV (format adapté au système)
 - Import CSV dans une table existante
 - Collage multiple depuis Excel
+- Collage multiple tolérant **tabulation**, **;** et **,**
+- Reconnaissance des termes FR/EN en import/collage pour :
+  - catégories
+  - raretés
+  - types
+  - devises
 - Détection simple de doublons à l'import
 - Modal unique pour tous les transferts de fichier (import/export JSON/CSV)
 - Tirage configuré avec :
@@ -36,14 +43,18 @@ Une extension Owlbear Rodeo pour créer, modifier, importer, exporter et lancer 
   - doublons autorisés ou non
   - mode de probabilité
 - Saisie manuelle précise des bornes min/max (synchronisée avec les sliders)
+- Devises localisées selon langue/système :
+  - DND5E FR/EN : `pc/cp`, `pa/sp`, `pe/ep`, `po/gp`, `pp/pp`
+  - PF2E FR/EN : `pc/cp`, `pa/sp`, `po/gp`, `pp/pp` 
 - Tirage rapide avec les derniers paramètres mémorisés
 - Mémorisation locale de plusieurs états d'interface
+- Barre flottante en édition de table : **Enregistrer**, **Annuler**, **remonter en haut**
 
 ### Installation dans Owlbear Rodeo
 
 Ajouter cette URL comme extension :
 
-`https://loot-tables-af787d.gitlab.io/manifest.json`
+`https://thp21000.github.io/loot-tables-for-OBR/manifest.json`
 
 ### Sauvegarde recommandée
 
@@ -56,6 +67,7 @@ Il est fortement recommandé de faire des exports JSON réguliers pour éviter t
 
 - Ouvrir la fenêtre **Paramètres** (bouton engrenage).
 - Utiliser les boutons **PF2E / DND5E**.
+- Le changement de système recharge les tables du système cible.
 - Chaque système a son propre stockage local.
 - Changer de système ne supprime rien : cela affiche simplement l’autre “espace” de tables.
 
@@ -78,6 +90,7 @@ Lors d'un import dans une table existante, il est possible de :
 - remplacer les objets existants
 
 Les doublons simples sont ignorés à l'import.
+Les valeurs importées sont normalisées pour accepter des sources hétérogènes (FR/EN, singulier/pluriel sur certaines catégories).
 
 #### Tirer du loot
 
@@ -100,8 +113,8 @@ Colonnes attendues :
 - `valueCurrency`
 
 Catégories disponibles
-- `Arme`
-- `Armure`
+- `Armes`
+- `Armures`
 - `Consommable`
 - `Contenant`
 - `Equipement`
@@ -113,6 +126,10 @@ Raretés disponibles
 - `Peu courant`
 - `Rare`
 - `Unique`
+
+Notes :
+- `type` n’est pas attendu dans ce format PF2E.
+- La devise `pe/ep` n’est pas proposée côté PF2E dans l’UI.
 
 Exemple :
 
@@ -153,11 +170,32 @@ Raretés disponibles
 - `Légendaire (niv 17)`
 - `Artéfact`
 
+Types disponibles
+- `Aucun`
+- `Anneau`
+- `Arme`
+- `Armure`
+- `Baguette`
+- `Bâton`
+- `Objets merveilleux`
+- `Parchemin`
+- `Potion`
+- `Sceptre`
+- `Plante`
+- `Venin`
+- `Toxine`
+- `Mixture`
+- `Altérant`
+- `Antipoison`
+- `Curatif`
+- `Dopant`
+- `Fortifiant`
+
 Exemple :
 
 ```csv
 name;url;category;type;rarity;valueAmount;valueCurrency
-Longsword +1;https://example.com;Armes;Arme martiale;Rare;500;po
+Longsword +1;https://example.com;Armes;Aucun;Rare;500;po
 Potion of Healing;https://example.com;Consommable;Potion;Courant;50;po
 ```
 
@@ -214,6 +252,7 @@ An Owlbear Rodeo extension to create, edit, import, export, and roll loot tables
 
 - Create and edit loot tables
 - Support for **PF2E** and **DND5E** systems (selector in UI)
+- System/language selector moved to **Settings** (gear button), with FR/EN flag icons
 - Item management with:
   - name
   - sheet URL
@@ -229,6 +268,12 @@ An Owlbear Rodeo extension to create, edit, import, export, and roll loot tables
 - CSV import / export (system-aware format)
 - CSV import into an existing table
 - Multi-paste from Excel
+- Multi-paste accepts **tab**, **;**, and **,** separators
+- FR/EN term recognition during import/paste for:
+  - categories
+  - rarities
+  - types
+  - currencies
 - Simple duplicate detection on import
 - Single modal for all file transfers (JSON/CSV import/export)
 - Configurable roll with:
@@ -239,14 +284,18 @@ An Owlbear Rodeo extension to create, edit, import, export, and roll loot tables
   - duplicates allowed or not
   - probability mode
 - Precise manual min/max input (synchronized with sliders)
+- Currency labels are localized by language/system:
+  - DND5E FR/EN: `pc/cp`, `pa/sp`, `pe/ep`, `po/gp`, `pp/pp`
+  - PF2E FR/EN: `pc/cp`, `pa/sp`, `po/gp`, `pp/pp`
 - Quick roll with last-used settings
 - Local persistence of multiple UI states
+- Floating action bar in table edit mode: **Save**, **Cancel**, **Back to top**
 
 ### Installation in Owlbear Rodeo
 
 Add this URL as an extension:
 
-`https://loot-tables-af787d.gitlab.io/manifest.json`
+`https://thp21000.github.io/loot-tables-for-OBR/manifest.json`
 
 ### Recommended backup
 
@@ -259,6 +308,7 @@ It is strongly recommended to export JSON backups regularly to avoid data loss.
 
 - Open **Settings** (gear button).
 - Use **PF2E / DND5E** buttons.
+- System switch reloads the target system tables.
 - Each system has its own local storage.
 - Switching system does not delete anything: it simply shows the other table space.
 
@@ -281,6 +331,7 @@ When importing into an existing table, you can:
 - replace existing items
 
 Simple duplicates are ignored during import.
+Imported values are normalized to support heterogeneous sources (FR/EN terms, singular/plural variants for some categories).
 
 #### Roll loot
 
@@ -303,19 +354,23 @@ Expected columns:
 - `valueCurrency`
 
 Available categories
-- `Arme`
-- `Armure`
-- `Consommable`
-- `Contenant`
-- `Equipement`
-- `Trésor`
-- `Autre`
+- `Weapons`
+- `Armors`
+- `Consumable`
+- `Container`
+- `Equipment`
+- `Treasure`
+- `Other`
 
 Available rarities
-- `Courant`
-- `Peu courant`
+- `Common`
+- `Uncommon`
 - `Rare`
 - `Unique`
+
+Notes:
+- `type` is not expected in PF2E format.
+- `pe/ep` is not offered in PF2E currency options in the UI.
 
 Example:
 
@@ -337,39 +392,60 @@ Expected columns:
 - `valueCurrency`
 
 Available categories
-- `Armes`
-- `Armures`
-- `Équipement d'aventurier`
-- `Outils`
-- `Montures et véhicules`
-- `Marchandises`
-- `Objets magiques`
+- `Weapons`
+- `Armors`
+- `Adventuring gear`
+- `Tools`
+- `Mounts & vehicles`
+- `Trade goods`
+- `Magic items`
 - `Poisons`
-- `Herbes`
+- `Herbs`
 
 Available rarities
-- `Aucun`
-- `Commun (niv 1)`
-- `Peu commun (niv 1)`
+- `None`
+- `Common (lvl 1)`
+- `Uncommon (lvl 1)`
 - `Rare`
-- `Très rare (niv 11)`
-- `Légendaire (niv 17)`
-- `Artéfact`
+- `Very rare (lvl 11)`
+- `Legendary (lvl 17)`
+- `Artifact`
+
+Available type
+- `None`
+- `Ring`
+- `Weapon`
+- `Armor`
+- `Wand`
+- `Staff`
+- `Wondrous item`
+- `Scroll`
+- `Potion`
+- `Rod`
+- `Plant`
+- `Venom`
+- `Toxin`
+- `Mixture`
+- `Altering`
+- `Antidote`
+- `Healing`
+- `Booster`
+- `Fortifying`
 
 Example:
 
 ```csv
 name;url;category;type;rarity;valueAmount;valueCurrency
-Longsword +1;https://example.com;Weapons;Martial Weapon;Rare;500;gp
+Longsword +1;https://example.com;Weapons;None;Rare;500;gp
 Potion of Healing;https://example.com;Consumable;Potion;Common;50;gp
 ```
 
 #### Available currencies
 
-- `pc`
-- `pa`
-- `pe`
-- `po`
+- `cp`
+- `sp`
+- `ep`
+- `gp`
 - `pp`
 
 ### Current limitations
