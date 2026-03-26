@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { GameSystem, LootCategory, LootCurrency, ProbabilityMode, RollOptions } from "../types";
 import { buttons, controls, colors, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
-import { tCurrency } from "../i18n/gameTerms";
+import { tCategory, tCurrency } from "../i18n/gameTerms";
 
 type RollDialogProps = {
   isOpen: boolean;
