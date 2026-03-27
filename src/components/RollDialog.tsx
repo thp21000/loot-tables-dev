@@ -222,6 +222,7 @@ export default function RollDialog({
     []
   );
   const [allowDuplicates, setAllowDuplicates] = useState(false);
+  const [allowMagic, setAllowMagic] = useState(true);
   const [probabilityMode, setProbabilityMode] =
     useState<ProbabilityMode>("balanced");
   
@@ -281,6 +282,7 @@ export default function RollDialog({
     setMaxValuePc(Math.max(valueBounds.min, Math.min(initialOptions.maxValuePc, valueBounds.max)));
     setSelectedCategories(initialOptions.categories);
     setAllowDuplicates(initialOptions.allowDuplicates);
+    setAllowMagic(initialOptions.allowMagic);
     setProbabilityMode(initialOptions.probabilityMode);
   }, [isOpen, initialOptions, levelBounds.min, levelBounds.max, valueBounds.min, valueBounds.max, quantityBounds.min, quantityBounds.max]);
 
@@ -317,6 +319,7 @@ export default function RollDialog({
       maxValuePc,
       categories: selectedCategories,
       allowDuplicates,
+      allowMagic,
       probabilityMode,
     });
   }
@@ -600,6 +603,27 @@ export default function RollDialog({
               {t("roll.allowDuplicates")}
             </label>
           </div>
+
+          {currentSystem === "PF2E" ? (
+            <div>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: colors.textSoft,
+                  fontWeight: 600,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={allowMagic}
+                  onChange={(event) => setAllowMagic(event.target.checked)}
+                />
+                {t("roll.allowMagic")}
+              </label>
+            </div>
+          ) : null}
         </div>
 
         <div

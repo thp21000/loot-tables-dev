@@ -47,6 +47,7 @@ function formatResultText(
     allowDuplicates: result.options.allowDuplicates
       ? t("result.allowDuplicates.yes")
       : t("result.allowDuplicates.no"),
+    allowMagic: result.options.allowMagic ? t("common.yes") : t("common.no"),
   })} | ${t("result.modeSummary", {
     mode: getModeLabel(result.options.probabilityMode, (key) => t(key)),
   })}`;
@@ -147,6 +148,7 @@ export default function ResultDialog({
             allowDuplicates: result.options.allowDuplicates
               ? t("result.allowDuplicates.yes")
               : t("result.allowDuplicates.no"),
+            allowMagic: result.options.allowMagic ? t("common.yes") : t("common.no"),
           })}
         </p>
 

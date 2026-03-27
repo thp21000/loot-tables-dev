@@ -39,6 +39,7 @@ Une extension Owlbear Rodeo pour créer, modifier, importer, exporter et lancer 
   - plage de niveau (min/max)
   - plage de quantité (min/max)
   - plage de valeur en pc (min/max)
+  - filtre objets magiques (PF2E uniquement)
   - catégories
   - doublons autorisés ou non
   - mode de probabilité
@@ -109,6 +110,7 @@ Colonnes attendues :
 - `level`
 - `category`
 - `rarity`
+- `magic`
 - `valueAmount`
 - `valueCurrency`
 
@@ -127,6 +129,10 @@ Raretés disponibles
 - `Rare`
 - `Unique`
 
+Magique disponibles
+- `Oui`
+- `Non`
+
 Notes :
 - `type` n’est pas attendu dans ce format PF2E.
 - La devise `pe/ep` n’est pas proposée côté PF2E dans l’UI.
@@ -134,9 +140,9 @@ Notes :
 Exemple :
 
 ```csv
-name;url;level;category;rarity;valueAmount;valueCurrency
-Epée courte;https://example.com;1;Arme;Courant;9;pa
-Potion de soins;https://example.com;1;Consommable;Courant;4;po
+name;url;level;category;rarity;magic;valueAmount;valueCurrency
+Epée courte;https://example.com;1;Arme;Courant;non;9;pa
+Potion de soins;https://example.com;1;Consommable;Courant;oui;4;po
 ```
 
 ##### DND5E
@@ -282,6 +288,7 @@ An Owlbear Rodeo extension to create, edit, import, export, and roll loot tables
   - level range (min/max)
   - quantity range (min/max)
   - value range in cp (min/max)
+  - magic item filter (PF2E only)
   - categories
   - duplicates allowed or not
   - probability mode
@@ -352,6 +359,7 @@ Expected columns:
 - `level`
 - `category`
 - `rarity`
+- `magic`
 - `valueAmount`
 - `valueCurrency`
 
@@ -369,6 +377,10 @@ Available rarities
 - `Uncommon`
 - `Rare`
 - `Unique`
+
+Available magic
+- `Yes`
+- `No`
 
 Notes:
 - `type` is not expected in PF2E format.
@@ -437,9 +449,9 @@ Available type
 Example:
 
 ```csv
-name;url;category;type;rarity;valueAmount;valueCurrency
-Longsword +1;https://example.com;Weapons;None;Rare;500;gp
-Potion of Healing;https://example.com;Consumable;Potion;Common;50;gp
+name;url;level;category;rarity;magic;valueAmount;valueCurrency
+Short Sword;https://example.com;1;Weapon;Common;no;9;sp
+Healing Potion;https://example.com;1;Consumable;Common;yes;4;gp
 ```
 
 #### Available currencies

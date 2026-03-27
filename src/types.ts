@@ -70,6 +70,7 @@ export type LootItem = {
   url: string;
   level: number;
   category: LootCategory;
+  magic: boolean;
   type: string;
   rarity: LootRarity;
   valueAmount: number;
@@ -94,6 +95,7 @@ export type RollOptions = {
   maxValuePc: number;
   categories: LootCategory[];
   allowDuplicates: boolean;
+  allowMagic: boolean;
   probabilityMode: ProbabilityMode;
 };
 
@@ -129,6 +131,7 @@ export type ValidatedRollSummaryItem = {
   url: string;
   level: number;
   category: LootCategory;
+  magic: boolean;
   type: string;
   rarity: LootRarity;
   valueAmount: number;

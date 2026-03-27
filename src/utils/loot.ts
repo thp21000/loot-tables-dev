@@ -136,8 +136,10 @@ export function rollLootTable(
     const itemValuePc = getValueInCopper(item);
     const matchesValue =
       itemValuePc >= options.minValuePc && itemValuePc <= options.maxValuePc;
-
-    return matchesLevel && matchesCategory && matchesValue;
+    const matchesMagic =
+      table.system !== "PF2E" || options.allowMagic || !item.magic;
+      
+    return matchesLevel && matchesCategory && matchesValue && matchesMagic;
   });
 
   const weightedItems: RolledLootItem[] = filteredBaseItems

@@ -88,7 +88,7 @@ const DND5E_RARITY_OPTIONS: LootRarity[] = [
 ];
 
 const EDITOR_ITEM_GRID_TEMPLATE_PF2E =
-  "minmax(220px, 300px) minmax(160px, 220px) 86px 130px 130px 160px auto";
+  "minmax(220px, 300px) minmax(160px, 220px) 86px 130px 96px 130px 160px auto";
 const EDITOR_ITEM_GRID_TEMPLATE_DND5E =
   "minmax(220px, 300px) minmax(160px, 220px) 130px 130px 130px 160px auto";
 const EDITOR_ITEM_MIN_WIDTH = "980px";
@@ -100,6 +100,7 @@ function createEmptyItem(): EditableLootItem {
     url: "",
     level: 0,
     category: "Autre",
+    magic: false,
     type: "Aucun",
     rarity: "Courant",
     valueAmount: 0,
@@ -199,6 +200,7 @@ function parsePastedRows(text: string): LootItem[] {
       url: (parts[1] ?? "").trim(),
       level: Number(parts[2]) || 0,
       category: normalizePastedCategory((parts[3] ?? "").trim()),
+      magic: false,
       type: "Aucun",
       rarity: normalizePastedRarity((parts[4] ?? "").trim()),
       valueAmount: Number(parts[5]) || 0,
@@ -374,6 +376,7 @@ export default function TableEditor({
       url: item.url.trim(),
       level: Number(item.level) || 0,
       category: item.category,
+      magic: Boolean(item.magic),
       type: item.type || "Aucun",
       rarity: item.rarity,
       valueAmount: Number(item.valueAmount) || 0,
@@ -481,6 +484,7 @@ export default function TableEditor({
         <div>{t("column.sheet")}</div>
         {currentSystem === "PF2E" ? <div>{t("column.level")}</div> : null}
         <div>{t("column.category")}</div>
+        {currentSystem === "PF2E" ? <div>{t("column.magic")}</div> : null}
         {currentSystem === "DND5E" ? <div>{t("column.type")}</div> : null}
         <div>{t("column.rarity")}</div>
         <div>{t("column.amount")}</div>
@@ -556,6 +560,19 @@ export default function TableEditor({
                     </option>
                   ))}
                 </select>
+
+                {currentSystem === "PF2E" ? (
+                  <select
+                    value={item.magic ? "yes" : "no"}
+                    onChange={(event) =>
+                      handleItemChange(item.id, "magic", event.target.value === "yes")
+                    }
+                    style={{ ...controls.select, textAlign: "center" }}
+                  >
+                    <option value="no">{t("common.no")}</option>
+                    <option value="yes">{t("common.yes")}</option>
+                  </select>
+                ) : null}
 
                 {currentSystem === "DND5E" ? (
                   <select
@@ -684,6 +701,7 @@ export default function TableEditor({
 
               {currentSystem === "PF2E" ? <div>{t("common.levelShort")} {item.level}</div> : null}
                 <div>{tCategory(item.category, language)}</div>
+              {currentSystem === "PF2E" ? <div>{item.magic ? t("common.yes") : t("common.no")}</div> : null}
               {currentSystem === "DND5E" ? <div>{tType(item.type || "Aucun", language)}</div> : null}
                 <div style={{ color: getRarityColor(item.rarity), fontWeight: 700 }}>
                 {tRarity(item.rarity, language)}

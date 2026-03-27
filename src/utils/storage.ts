@@ -27,6 +27,7 @@ const DEFAULT_ROLL_OPTIONS: RollOptions = {
   maxValuePc: 1000000,
   categories: [],
   allowDuplicates: false,
+  allowMagic: true,
   probabilityMode: "balanced",
 };
 
@@ -125,6 +126,17 @@ function normalizeCurrency(value: string, system: GameSystem): LootCurrency {
   return "pc";
 }
 
+function normalizeMagic(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value > 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["yes", "oui", "true", "1", "y", "o"].includes(normalized)) return true;
+    if (["no", "non", "false", "0", "n"].includes(normalized)) return false;
+  }
+  return false;
+}
+
 function normalizeItem(item: Partial<LootItem>, system: GameSystem): LootItem {
   return {
     id: item.id ?? crypto.randomUUID(),
@@ -132,6 +144,7 @@ function normalizeItem(item: Partial<LootItem>, system: GameSystem): LootItem {
     url: (item.url ?? "").trim(),
     level: Number(item.level) || 0,
     category: normalizeCategory(item.category ?? ""),
+    magic: normalizeMagic(item.magic),
     type: normalizeType(item.type ?? "Aucun"),
     rarity: normalizeRarity(item.rarity ?? ""),
     valueAmount: Number(item.valueAmount) || 0,
@@ -234,6 +247,10 @@ export function loadUIState(): UIState {
                 typeof parsed.lastRollOptions.allowDuplicates === "boolean"
                   ? parsed.lastRollOptions.allowDuplicates
                   : DEFAULT_ROLL_OPTIONS.allowDuplicates,
+              allowMagic:
+                typeof parsed.lastRollOptions.allowMagic === "boolean"
+                  ? parsed.lastRollOptions.allowMagic
+                  : DEFAULT_ROLL_OPTIONS.allowMagic,
               probabilityMode:
                 typeof parsed.lastRollOptions.probabilityMode === "string"
                   ? parsed.lastRollOptions.probabilityMode
@@ -319,7 +336,7 @@ export function exportSingleTableToCsv(table: LootTable): void {
   try {
     const isPf2e = table.system === "PF2E";
     const header = isPf2e
-      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      ? ["name", "url", "level", "category", "rarity", "magic", "valueAmount", "valueCurrency"]
       : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
 
     const rows = table.items.map((item) =>
@@ -330,6 +347,7 @@ export function exportSingleTableToCsv(table: LootTable): void {
             escapeCsvValue(item.level),
             escapeCsvValue(item.category),
             escapeCsvValue(item.rarity),
+            escapeCsvValue(item.magic ? "yes" : "no"),
             escapeCsvValue(item.valueAmount),
             escapeCsvValue(item.valueCurrency),
           ].join(";")
@@ -487,37 +505,46 @@ export async function importSingleTableFromCsv(
 
   const expectedHeader =
     system === "PF2E"
-      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      ? ["name", "url", "level", "category", "rarity", "magic", "valueAmount", "valueCurrency"]
       : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
+  const legacyPf2eHeader = ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"];
 
   const normalizedHeader = header.map((value) => value.replace(/^\uFEFF/, ""));
 
   const isHeaderValid =
     normalizedHeader.length === expectedHeader.length &&
     normalizedHeader.every((value, index) => value === expectedHeader[index]);
+  const isLegacyPf2eHeader =
+    system === "PF2E" &&
+    normalizedHeader.length === legacyPf2eHeader.length &&
+    normalizedHeader.every((value, index) => value === legacyPf2eHeader[index]);
 
-  if (!isHeaderValid) {
+  if (!isHeaderValid && !isLegacyPf2eHeader) {
     throw new Error("En-tête CSV invalide.");
   }
 
   const items: LootItem[] = lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
 
-    if (values.length !== expectedHeader.length) {
+    const expectedLength = isLegacyPf2eHeader ? legacyPf2eHeader.length : expectedHeader.length;
+
+    if (values.length !== expectedLength) {
       throw new Error("Une ligne CSV est invalide.");
     }
 
     if (system === "PF2E") {
+      const isLegacy = isLegacyPf2eHeader;
       return {
         id: crypto.randomUUID(),
         name: values[0],
         url: values[1],
         level: Number(values[2]) || 0,
         category: normalizeCategory(values[3]),
+        magic: isLegacy ? false : normalizeMagic(values[5]),
         type: "Aucun",
         rarity: normalizeRarity(values[4]),
-        valueAmount: Number(values[5]) || 0,
-        valueCurrency: normalizeCurrency(values[6], system),
+        valueAmount: Number(values[isLegacy ? 5 : 6]) || 0,
+        valueCurrency: normalizeCurrency(values[isLegacy ? 6 : 7], system),
       };
     }
 
@@ -527,6 +554,7 @@ export async function importSingleTableFromCsv(
       url: values[1],
       level: 0,
       category: normalizeCategory(values[2]),
+      magic: false,
       type: normalizeType(values[3] || "Aucun"),
       rarity: normalizeRarity(values[4]),
       valueAmount: Number(values[5]) || 0,
@@ -564,37 +592,46 @@ export async function importItemsFromCsvFile(
   const header = parseCsvLine(lines[0]);
   const expectedHeader =
     system === "PF2E"
-      ? ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"]
+      ? ["name", "url", "level", "category", "rarity", "magic", "valueAmount", "valueCurrency"]
       : ["name", "url", "category", "type", "rarity", "valueAmount", "valueCurrency"];
+  const legacyPf2eHeader = ["name", "url", "level", "category", "rarity", "valueAmount", "valueCurrency"];
 
   const normalizedHeader = header.map((value) => value.replace(/^\uFEFF/, ""));
 
   const isHeaderValid =
     normalizedHeader.length === expectedHeader.length &&
     normalizedHeader.every((value, index) => value === expectedHeader[index]);
+  const isLegacyPf2eHeader =
+    system === "PF2E" &&
+    normalizedHeader.length === legacyPf2eHeader.length &&
+    normalizedHeader.every((value, index) => value === legacyPf2eHeader[index]);
 
-  if (!isHeaderValid) {
+  if (!isHeaderValid && !isLegacyPf2eHeader) {
     throw new Error("En-tête CSV invalide.");
   }
 
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
 
-    if (values.length !== expectedHeader.length) {
+    const expectedLength = isLegacyPf2eHeader ? legacyPf2eHeader.length : expectedHeader.length;
+
+    if (values.length !== expectedLength) {
       throw new Error("Une ligne CSV est invalide.");
     }
 
     if (system === "PF2E") {
+      const isLegacy = isLegacyPf2eHeader;
       return {
         id: crypto.randomUUID(),
         name: values[0],
         url: values[1],
         level: Number(values[2]) || 0,
         category: normalizeCategory(values[3]),
+        magic: isLegacy ? false : normalizeMagic(values[5]),
         type: "Aucun",
         rarity: normalizeRarity(values[4]),
-        valueAmount: Number(values[5]) || 0,
-        valueCurrency: normalizeCurrency(values[6], system),
+        valueAmount: Number(values[isLegacy ? 5 : 6]) || 0,
+        valueCurrency: normalizeCurrency(values[isLegacy ? 6 : 7], system),
       };
     }
 
@@ -604,6 +641,7 @@ export async function importItemsFromCsvFile(
       url: values[1],
       level: 0,
       category: normalizeCategory(values[2]),
+      magic: false,
       type: normalizeType(values[3] || "Aucun"),
       rarity: normalizeRarity(values[4]),
       valueAmount: Number(values[5]) || 0,

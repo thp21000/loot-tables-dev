@@ -28,7 +28,7 @@ type TableListProps = {
   currentSystem: GameSystem;
 };
 
-const VIEW_ITEM_GRID_TEMPLATE_PF2E = "minmax(160px, 220px) 72px 72px 118px 118px 108px";
+const VIEW_ITEM_GRID_TEMPLATE_PF2E = "minmax(160px, 220px) 72px 72px 86px 118px 118px 108px";
 const VIEW_ITEM_GRID_TEMPLATE_DND5E = "minmax(160px, 220px) 72px 128px 128px 118px 108px";
 const VIEW_ITEM_MIN_WIDTH = "648px";
 
@@ -438,6 +438,7 @@ export default function TableList({
                                 <div>{t("column.sheet")}</div>
                                 {currentSystem === "PF2E" ? <div>{t("column.level")}</div> : null}
                                 <div>{t("column.category")}</div>
+                                {currentSystem === "PF2E" ? <div>{t("column.magic")}</div> : null}
                                 {currentSystem === "DND5E" ? <div>{t("column.type")}</div> : null}
                                 <div>{t("column.rarity")}</div>
                                 <div>{t("column.amount")}</div>
@@ -481,6 +482,7 @@ export default function TableList({
 
                                     {currentSystem === "PF2E" ? <div>{t("common.levelShort")} {item.level}</div> : null}
                                     <div>{tCategory(item.category, currentLanguage)}</div>
+                                    {currentSystem === "PF2E" ? <div>{item.magic ? t("common.yes") : t("common.no")}</div> : null}
                                     {currentSystem === "DND5E" ? (
                                       <div>{tType(item.type || "Aucun", currentLanguage)}</div>
                                     ) : null}
