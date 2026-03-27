@@ -386,7 +386,7 @@ Notes:
 - `type` is not expected in PF2E format.
 - `pe/ep` is not offered in PF2E currency options in the UI.
 
-Example:
+Example: 
 
 ```csv
 name;url;level;category;rarity;valueAmount;valueCurrency
