@@ -28,8 +28,6 @@ type TableListProps = {
   currentSystem: GameSystem;
 };
 
-const VIEW_ITEM_GRID_TEMPLATE_PF2E = "minmax(160px, 220px) 72px 72px 86px 118px 118px 108px";
-const VIEW_ITEM_GRID_TEMPLATE_DND5E = "minmax(160px, 220px) 72px 128px 128px 118px 108px";
 const VIEW_ITEM_MIN_WIDTH = "648px";
 
 const viewItemBlockStyle = {
@@ -46,7 +44,7 @@ const viewItemRowStyle = {
 
 const viewItemNameCellStyle = {
   width: "100%",
-  maxWidth: "220px",
+  maxWidth: "420px",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -182,10 +180,16 @@ export default function TableList({
   currentSystem,
 }: TableListProps) {
   const { t, language: currentLanguage } = useI18n();
-  const viewItemGridTemplate =
-    currentSystem === "DND5E"
-      ? VIEW_ITEM_GRID_TEMPLATE_DND5E
-      : VIEW_ITEM_GRID_TEMPLATE_PF2E;
+  const toAdaptiveWidth = (
+    values: string[],
+    minWidth: number,
+    maxWidth: number,
+    characterWidth = 8
+  ) => {
+    const longest = values.reduce((max, value) => Math.max(max, value.trim().length), 0);
+    const computed = longest * characterWidth + 36;
+    return `${Math.max(minWidth, Math.min(maxWidth, computed))}px`;
+  };
   function toggleExpanded(tableId: string) {
     onExpandedTableIdsChange(
       expandedTableIds.includes(tableId)
@@ -272,7 +276,23 @@ export default function TableList({
               table.items,
               getItemSortMode(table.id)
             );
-
+            const nameColumnWidth = toAdaptiveWidth(
+              [t("column.name"), ...sortedItems.map((item) => item.name)],
+              180,
+              420
+            );
+            const categoryColumnWidth = toAdaptiveWidth(
+              [
+                t("column.category"),
+                ...sortedItems.map((item) => tCategory(item.category, currentLanguage)),
+              ],
+              140,
+              280
+            );
+            const viewItemGridTemplate =
+              currentSystem === "DND5E"
+                ? `minmax(${nameColumnWidth}, max-content) 72px minmax(${categoryColumnWidth}, max-content) 128px 118px 108px`
+                : `minmax(${nameColumnWidth}, max-content) 72px 72px minmax(${categoryColumnWidth}, max-content) 86px 118px 118px 108px`;
             return (
               <div
                 key={table.id}
