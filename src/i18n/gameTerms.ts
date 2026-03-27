@@ -22,15 +22,15 @@ const categoryEn: Record<string, string> = {
 
 const rarityEn: Record<string, string> = {
   Aucun: "None",
+  None: "None",
   Courant: "Common",
   "Peu courant": "Uncommon",
   Rare: "Rare",
-  Unique: "Unique",
-  "Commun (niv 1)": "Common (lvl 1)",
-  "Peu commun (niv 1)": "Uncommon (lvl 1)",
-  "Très rare (niv 11)": "Very rare (lvl 11)",
-  "Légendaire (niv 17)": "Legendary (lvl 17)",
+  "Très rare": "Very Rare",
+  "Légendaire": "Legendary",
   "Artéfact": "Artifact",
+  Unique: "Unique",
+  Artifact: "Artifact",
 };
 
 const typeEn: Record<string, string> = {

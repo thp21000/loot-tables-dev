@@ -169,11 +169,11 @@ Catégories disponibles
 
 Raretés disponibles
 - `Aucun`
-- `Commun (niv 1)`
-- `Peu commun (niv 1)`
+- `Courant`
+- `Peu courant`
 - `Rare`
-- `Très rare (niv 11)`
-- `Légendaire (niv 17)`
+- `Très rare`
+- `Légendaire`
 - `Artéfact`
 
 Types disponibles
@@ -418,11 +418,11 @@ Available categories
 
 Available rarities
 - `None`
-- `Common (lvl 1)`
-- `Uncommon (lvl 1)`
+- `Common`
+- `Uncommon`
 - `Rare`
-- `Very rare (lvl 11)`
-- `Legendary (lvl 17)`
+- `Very Rare`
+- `Legendary`
 - `Artifact`
 
 Available type

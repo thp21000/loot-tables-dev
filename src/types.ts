@@ -23,12 +23,10 @@ export type LootCategory =
   | "Courant"
   | "Peu courant"
   | "Rare"
-  | "Unique"
-  | "Commun (niv 1)"
-  | "Peu commun (niv 1)"
-  | "Très rare (niv 11)"
-  | "Légendaire (niv 17)"
-  | "Artéfact";
+  | "Très rare"
+  | "Légendaire"
+  | "Artéfact"
+  | "Unique";
 
 export type LootCurrency = "pc" | "pa" | "pe" | "po" | "pp";
 

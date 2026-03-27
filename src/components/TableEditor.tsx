@@ -79,11 +79,11 @@ const DND5E_TYPE_OPTIONS = [
 
 const DND5E_RARITY_OPTIONS: LootRarity[] = [
   "Aucun",
-  "Commun (niv 1)",
-  "Peu commun (niv 1)",
+  "Courant",
+  "Peu courant",
   "Rare",
-  "Très rare (niv 11)",
-  "Légendaire (niv 17)",
+  "Très rare",
+  "Légendaire",
   "Artéfact",
 ];
 

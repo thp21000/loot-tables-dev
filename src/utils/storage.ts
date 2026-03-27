@@ -71,20 +71,18 @@ function normalizeRarity(value: string): LootRarity {
   const normalized = value.trim().toLowerCase();
 
   if (normalized === "aucun" || normalized === "none") return "Aucun";
-  if (normalized === "courant" || normalized === "common") return "Courant";
-  if (normalized === "peu courant" || normalized === "uncommon") return "Peu courant";
+  if (normalized === "courant" || normalized === "common" || normalized === "common (lvl 1)" || normalized === "commun (niv 1)") return "Courant";
+  if (normalized === "peu courant" || normalized === "uncommon" || normalized === "uncommon (lvl 1)" || normalized === "peu commun (niv 1)") return "Peu courant";
   if (normalized === "rare") return "Rare";
-  if (normalized === "unique") return "Unique";
-  if (normalized === "commun (niv 1)" || normalized === "common (lvl 1)") return "Commun (niv 1)";
-  if (normalized === "peu commun (niv 1)" || normalized === "uncommon (lvl 1)") return "Peu commun (niv 1)";
-  if (normalized === "très rare (niv 11)" || normalized === "tres rare (niv 11)" || normalized === "very rare (lvl 11)") {
-    return "Très rare (niv 11)";
+   if (normalized === "très rare" || normalized === "tres rare" || normalized === "very rare" || normalized === "very rare (lvl 11)" || normalized === "très rare (niv 11)" || normalized === "tres rare (niv 11)") {
+    return "Très rare";
   }
-  if (normalized === "légendaire (niv 17)" || normalized === "legendaire (niv 17)" || normalized === "legendary (lvl 17)") {
-    return "Légendaire (niv 17)";
+  if (normalized === "légendaire" || normalized === "legendaire" || normalized === "legendary" || normalized === "legendary (lvl 17)" || normalized === "légendaire (niv 17)" || normalized === "legendaire (niv 17)") {
+    return "Légendaire";
   }
   if (normalized === "artéfact" || normalized === "artefact" || normalized === "artifact") return "Artéfact";
-
+  if (normalized === "unique") return "Unique";
+  
   return "Aucun";
 }
 
