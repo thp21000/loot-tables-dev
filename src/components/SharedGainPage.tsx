@@ -15,9 +15,14 @@ import { useI18n } from "../i18n";
 import { tCategory, tCurrency, tRarity } from "../i18n/gameTerms";
 
 function getRarityColor(rarity: string): string {
+  if (rarity === "Aucun") return "#9ca3af";
   if (rarity === "Courant") return "#9ca3af";
   if (rarity === "Peu courant") return "#f59e0b";
   if (rarity === "Rare") return "#60a5fa";
+  if (rarity === "Très rare") return "#2c68b1";
+  if (rarity === "Légendaire") return "#00ff00";
+  if (rarity === "Unique") return "#a78bfa";
+  if (rarity === "Artéfact") return "#a78bfa";
   return "#a78bfa";
 }
 
