@@ -51,17 +51,25 @@ const viewItemNameCellStyle = {
 } as const;
 
 function getRarityColor(rarity: string): string {
+  if (rarity === "Aucun") return "#9ca3af";
   if (rarity === "Courant") return "#9ca3af";
   if (rarity === "Peu courant") return "#f59e0b";
   if (rarity === "Rare") return "#60a5fa";
+  if (rarity === "Très rare") return "#2c68b1";
+  if (rarity === "Légendaire") return "#00ff00";
+  if (rarity === "Unique") return "#a78bfa";
+  if (rarity === "Artéfact") return "#a78bfa";
   return "#a78bfa";
 }
 
 function getRarityRank(rarity: string): number {
   if (rarity === "Courant") return 1;
+  if (rarity === "Aucun") return 1;
   if (rarity === "Peu courant") return 2;
   if (rarity === "Rare") return 3;
-  return 4;
+  if (rarity === "Très rare") return 4;
+  if (rarity === "Légendaire") return 5;
+  return 6;
 }
 
 function getValueInCopper(

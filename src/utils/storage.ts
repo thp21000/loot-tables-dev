@@ -32,6 +32,7 @@ const DEFAULT_ROLL_OPTIONS: RollOptions = {
 };
 
 const DEFAULT_UI_STATE: UIState = {
+  currentSystem: "PF2E",
   searchTerm: "",
   tableSortMode: "updated-desc",
   expandedTableIds: [],
@@ -82,7 +83,7 @@ function normalizeRarity(value: string): LootRarity {
   }
   if (normalized === "artéfact" || normalized === "artefact" || normalized === "artifact") return "Artéfact";
   if (normalized === "unique") return "Unique";
-  
+
   return "Aucun";
 }
 
@@ -192,6 +193,10 @@ export function loadUIState(): UIState {
     const parsed = JSON.parse(raw);
 
     return {
+      currentSystem:
+        parsed?.currentSystem === "DND5E" || parsed?.currentSystem === "PF2E"
+          ? parsed.currentSystem
+          : DEFAULT_UI_STATE.currentSystem,
       searchTerm:
         typeof parsed?.searchTerm === "string"
           ? parsed.searchTerm

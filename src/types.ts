@@ -111,6 +111,7 @@ export type RollResult = {
 };
 
 export type UIState = {
+  currentSystem: GameSystem;
   searchTerm: string;
   tableSortMode: TableSortMode;
   expandedTableIds: string[];

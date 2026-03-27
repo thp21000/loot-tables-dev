@@ -176,9 +176,9 @@ const NEWS_SEEN_SESSION_KEY = "loot-tables-news-seen-v1";
 export default function App() {
   const { language, setLanguage, t } = useI18n();
   const initialUIState = loadUIState();
-  const [currentSystem, setCurrentSystem] = useState<GameSystem>("PF2E");
+  const [currentSystem, setCurrentSystem] = useState<GameSystem>(initialUIState.currentSystem);
 
-  const [tables, setTables] = useState<LootTable[]>(() => loadTables("PF2E"));
+  const [tables, setTables] = useState<LootTable[]>(() => loadTables(initialUIState.currentSystem));
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [rollingTableId, setRollingTableId] = useState<string | null>(null);
   const [lastRollTableId, setLastRollTableId] = useState<string | null>(null);
@@ -210,7 +210,7 @@ export default function App() {
 
   const transferFileInputRef = useRef<HTMLInputElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const lastSystemForSaveRef = useRef<GameSystem>("PF2E");
+  const lastSystemForSaveRef = useRef<GameSystem>(initialUIState.currentSystem);
 
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferAction, setTransferAction] = useState<TransferAction>("import");
@@ -252,12 +252,13 @@ export default function App() {
   useEffect(() => {
     saveUIState({
       searchTerm,
+      currentSystem,
       tableSortMode,
       expandedTableIds,
       itemSortModes,
       lastRollOptions,
     });
-  }, [searchTerm, tableSortMode, expandedTableIds, itemSortModes, lastRollOptions]);
+  }, [currentSystem, searchTerm, tableSortMode, expandedTableIds, itemSortModes, lastRollOptions]);
 
   useEffect(() => {
     if (tables.length === 0) {
