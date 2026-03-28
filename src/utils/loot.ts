@@ -44,8 +44,8 @@ function getModeFactor(
     return 1;
   }
 
-  const softPower = system === "DND5E" ? 1.2 : 1.5;
-  const strongPower = system === "DND5E" ? 1.6 : 2;
+  const softPower = system === "DND5E" ? 1.2 : 2;
+  const strongPower = system === "DND5E" ? 1.6 : 4;
 
   if (mode === "low-soft") {
     return Math.pow(highDistance, softPower);
@@ -85,7 +85,7 @@ function getEffectiveWeight(
 
   if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
 
-  const baseWeight = rarityWeight * itemValue;
+  const baseWeight = rarityWeight;
   const lowDistance = item.level - options.minLevel + 1;
   const highDistance = options.maxLevel - item.level + 1;
   const levelFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
