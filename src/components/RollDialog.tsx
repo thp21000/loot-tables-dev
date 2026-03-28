@@ -544,10 +544,18 @@ export default function RollDialog({
               style={controls.select}
             >
               <option value="balanced">{t("roll.mode.balanced")}</option>
-              <option value="low-soft">{t("roll.mode.lowSoft")}</option>
-              <option value="low-strong">{t("roll.mode.lowStrong")}</option>
-              <option value="high-soft">{t("roll.mode.highSoft")}</option>
-              <option value="high-strong">{t("roll.mode.highStrong")}</option>
+              <option value="low-soft">
+                {currentSystem === "DND5E" ? t("roll.mode.lowSoftDnd") : t("roll.mode.lowSoft")}
+              </option>
+              <option value="low-strong">
+                {currentSystem === "DND5E" ? t("roll.mode.lowStrongDnd") : t("roll.mode.lowStrong")}
+              </option>
+              <option value="high-soft">
+                {currentSystem === "DND5E" ? t("roll.mode.highSoftDnd") : t("roll.mode.highSoft")}
+              </option>
+              <option value="high-strong">
+                {currentSystem === "DND5E" ? t("roll.mode.highStrongDnd") : t("roll.mode.highStrong")}
+              </option>
               <option value="rarity-only">{t("roll.mode.rarityOnly")}</option>
             </select>
           </div>

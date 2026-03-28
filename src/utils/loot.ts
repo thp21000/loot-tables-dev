@@ -29,6 +29,18 @@ function getValueInCopper(item: LootItem): number {
   return item.valueAmount * 1000;
 }
 
+function getRarityRank(rarity: LootRarity): number {
+  if (rarity === "Aucun") return 1;
+  if (rarity === "Courant") return 2;
+  if (rarity === "Peu courant") return 3;
+  if (rarity === "Rare") return 4;
+  if (rarity === "Très rare") return 5;
+  if (rarity === "Unique") return 6;
+  if (rarity === "Légendaire") return 7;
+  if (rarity === "Artéfact") return 8;
+  return 1;
+}
+
 function getModeFactor(
   system: LootTable["system"],
   lowDistance: number,
@@ -75,12 +87,22 @@ function getEffectiveWeight(
   const itemValue = getValueInCopper(item);
 
   if (table.system === "DND5E") {
-    const baseWeight = rarityWeight * itemValue;
+    if (options.probabilityMode === "rarity-only") {
+      return rarityWeight;
+    }
 
-    const lowDistance = itemValue - options.minValuePc + 1;
-    const highDistance = options.maxValuePc - itemValue + 1;
-    const valueFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
-    return baseWeight * valueFactor;
+    const baseWeight = itemValue;
+
+    if (options.probabilityMode === "balanced") {
+      return baseWeight * rarityWeight;
+    }
+
+    const rarityRank = getRarityRank(item.rarity);
+    const maxRarityRank = 8;
+    const lowDistance = maxRarityRank - rarityRank + 1;
+    const highDistance = rarityRank;
+    const rarityFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
+    return baseWeight * rarityFactor;
   }
 
   if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
@@ -191,6 +213,7 @@ export function rollLootTable(
   return {
     tableId: table.id,
     tableName: table.name,
+    system: table.system,
     options,
     items: results,
     rolledAt: new Date().toISOString(),

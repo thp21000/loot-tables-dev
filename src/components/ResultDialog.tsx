@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { OwlbearPlayerRole, ProbabilityMode, RollResult } from "../types";
+import type { GameSystem, OwlbearPlayerRole, ProbabilityMode, RollResult } from "../types";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
 import { tCategory, tCurrency, tRarity } from "../i18n/gameTerms";
@@ -27,12 +27,12 @@ function getRarityColor(rarity: string): string {
   return "#a78bfa";
 }
 
-function getModeLabel(mode: ProbabilityMode, t: (key: string) => string): string {
+function getModeLabel(mode: ProbabilityMode, system: GameSystem, t: (key: string) => string): string {
   if (mode === "balanced") return t("roll.mode.balanced");
-  if (mode === "low-soft") return t("roll.mode.lowSoft");
-  if (mode === "low-strong") return t("roll.mode.lowStrong");
-  if (mode === "high-soft") return t("roll.mode.highSoft");
-  if (mode === "high-strong") return t("roll.mode.highStrong");
+  if (mode === "low-soft") return system === "DND5E" ? t("roll.mode.lowSoftDnd") : t("roll.mode.lowSoft");
+  if (mode === "low-strong") return system === "DND5E" ? t("roll.mode.lowStrongDnd") : t("roll.mode.lowStrong");
+  if (mode === "high-soft") return system === "DND5E" ? t("roll.mode.highSoftDnd") : t("roll.mode.highSoft");
+  if (mode === "high-strong") return system === "DND5E" ? t("roll.mode.highStrongDnd") : t("roll.mode.highStrong");
   return t("roll.mode.rarityOnly");
 }
 
@@ -54,7 +54,7 @@ function formatResultText(
       : t("result.allowDuplicates.no"),
     allowMagic: result.options.allowMagic ? t("common.yes") : t("common.no"),
   })} | ${t("result.modeSummary", {
-    mode: getModeLabel(result.options.probabilityMode, (key) => t(key)),
+    mode: getModeLabel(result.options.probabilityMode, result.system, (key) => t(key)),
   })}`;
   const categories =
     result.options.categories.length > 0
@@ -159,7 +159,7 @@ export default function ResultDialog({
 
         <p style={{ ...typography.pageSubtitle, marginBottom: "18px" }}>
         {t("result.modeSummary", {
-            mode: getModeLabel(result.options.probabilityMode, t),
+            mode: getModeLabel(result.options.probabilityMode, result.system, t),
           })}
         </p>
 
@@ -308,7 +308,7 @@ export default function ResultDialog({
                           maxQuantity: entry.options.maxQuantity,
                           minValuePc: entry.options.minValuePc,
                           maxValuePc: entry.options.maxValuePc,
-                          mode: getModeLabel(entry.options.probabilityMode, t),
+                          mode: getModeLabel(entry.options.probabilityMode, entry.system, t),
                         })}
                       </div>
                       <div style={{ marginTop: "6px", color: colors.textSoft }}>

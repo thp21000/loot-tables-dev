@@ -107,6 +107,7 @@ export type RolledLootItem = LootItem & {
 export type RollResult = {
   tableId: string;
   tableName: string;
+  system: GameSystem;
   options: RollOptions;
   items: RolledLootItem[];
   rolledAt: string;
