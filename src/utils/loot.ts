@@ -10,13 +10,14 @@ import type {
 } from "../types";
 
 function getRarityWeight(rarity: LootRarity): number {
-  if (rarity === "Aucun") return 100;
-  if (rarity === "Courant") return 100;
-  if (rarity === "Peu courant") return 40;
+  if (rarity === "Aucun") return 1;
+  if (rarity === "Courant") return 1;
+  if (rarity === "Peu courant") return 5;
   if (rarity === "Rare") return 10;
-  if (rarity === "Très rare") return 3;
-  if (rarity === "Légendaire") return 1;
-  if (rarity === "Artéfact") return 0.5;
+  if (rarity === "Très rare") return 20;
+  if (rarity === "Légendaire") return 40;
+  if (rarity === "Artéfact") return 60;
+  if (rarity === "Unique") return 20;
   return 1;
 }
 
@@ -66,30 +67,28 @@ function getEffectiveWeight(
   table: LootTable,
   options: RollOptions
 ): number {
-
   const rarityWeight = getRarityWeight(item.rarity);
-  if (table.system === "DND5E") {
-    const itemValue = getValueInCopper(item);
+  const itemValue = getValueInCopper(item);
 
-    if (options.probabilityMode === "balanced") {
-      const valueWeight = Math.sqrt((options.maxValuePc + 1) / (itemValue + 1));
-      return rarityWeight * valueWeight;
-    }
-    
+  if (table.system === "DND5E") {
+    const baseWeight = rarityWeight * itemValue;
+
     const lowDistance = itemValue - options.minValuePc + 1;
     const highDistance = options.maxValuePc - itemValue + 1;
     const valueFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
-    return rarityWeight * valueFactor;
+    return baseWeight * valueFactor;
   }
 
   if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
 
+  const normalizedLevel = Math.max(item.level, 1);
+  const baseWeight = rarityWeight * itemValue * normalizedLevel;
   const lowDistance = item.level - options.minLevel + 1;
   const highDistance = options.maxLevel - item.level + 1;
   const levelFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
 
 
-  return rarityWeight * levelFactor;
+  return baseWeight * levelFactor;
 }
 
 function weightedPick(items: RolledLootItem[]): RolledLootItem | null {
