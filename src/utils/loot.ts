@@ -85,8 +85,7 @@ function getEffectiveWeight(
 
   if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
 
-  const normalizedLevel = Math.max(item.level, 1);
-  const baseWeight = rarityWeight * itemValue * normalizedLevel;
+  const baseWeight = rarityWeight * itemValue;
   const lowDistance = item.level - options.minLevel + 1;
   const highDistance = options.maxLevel - item.level + 1;
   const levelFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
