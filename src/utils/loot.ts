@@ -70,6 +70,12 @@ function getEffectiveWeight(
   const rarityWeight = getRarityWeight(item.rarity);
   if (table.system === "DND5E") {
     const itemValue = getValueInCopper(item);
+
+    if (options.probabilityMode === "balanced") {
+      const valueWeight = Math.sqrt((options.maxValuePc + 1) / (itemValue + 1));
+      return rarityWeight * valueWeight;
+    }
+    
     const lowDistance = itemValue - options.minValuePc + 1;
     const highDistance = options.maxValuePc - itemValue + 1;
     const valueFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
