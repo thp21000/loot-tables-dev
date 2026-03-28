@@ -149,14 +149,23 @@ function normalizePastedCategory(value: string): LootCategory {
 }
 
 function normalizePastedRarity(value: string): LootRarity {
-  if (
-    value === "Courant" ||
-    value === "Peu courant" ||
-    value === "Rare" ||
-    value === "Unique"
-  ) {
-    return value;
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "aucun" || normalized === "none") return "Aucun";
+  if (normalized === "courant" || normalized === "common" || normalized === "common (lvl 1)" || normalized === "commun (niv 1)") {
+    return "Courant";
   }
+  if (normalized === "peu courant" || normalized === "uncommon" || normalized === "uncommon (lvl 1)" || normalized === "peu commun (niv 1)") {
+    return "Peu courant";
+   if (normalized === "rare") return "Rare";
+  if (normalized === "très rare" || normalized === "tres rare" || normalized === "very rare" || normalized === "very rare (lvl 11)" || normalized === "très rare (niv 11)" || normalized === "tres rare (niv 11)") {
+    return "Très rare";
+  }
+  if (normalized === "légendaire" || normalized === "legendaire" || normalized === "legendary" || normalized === "legendary (lvl 17)" || normalized === "légendaire (niv 17)" || normalized === "legendaire (niv 17)") {
+    return "Légendaire";
+  }
+  if (normalized === "artéfact" || normalized === "artefact" || normalized === "artifact") return "Artéfact";
+  if (normalized === "unique") return "Unique";
   return "Courant";
 }
 
