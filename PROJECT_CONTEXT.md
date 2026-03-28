@@ -69,6 +69,7 @@
   - Import/collage CSV/JSON tolérant les termes FR/EN pour catégorie/rareté/type
   - Normalisation des catégories arme/armure vers les formes plurielles (`Armes`, `Armures`)
   - Collage multiple depuis Excel tolérant tabulation, `;` et `,`
+  - Pondération des modes de probabilité DND5E corrigée pour respecter le sens bas/haut des raretés
 - Ce qui est en cours :
 
 - Ce qui est en cours :
@@ -262,6 +263,7 @@ Depuis la dernière mise à jour, le périmètre fonctionnel a encore évolué :
 - sélecteurs système/langue déplacés dans une modal Paramètres (engrenage), avec boutons visuels
 - drapeaux de langue passés sur des assets SVG explicites (plus robustes que le rendu emoji selon plateforme)
 - mode édition de table amélioré avec actions flottantes persistantes + bouton de remontée rapide
+- correction appliquée sur la pondération de rareté DND5E pour réaligner le comportement “raretés basses/hautes” avec les intitulés des modes
 - devises localisées selon langue/système, avec exclusion de `pe/ep` pour PF2E
 - import/collage rendu plus permissif et robuste (FR+EN, séparateurs multiples)
 - normalisation automatique des catégories/raretés/types pour réduire les incohérences de données
@@ -449,6 +451,56 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
 - problèmes restants :
   - Vérifier en import utilisateurs réels des fichiers CSV hétérogènes (quoting, accents, colonnes partiellement traduites)
   - Continuer la validation Owlbear réelle (popover + overlays flottants) sur diverses tailles d’écran
+
+  ### Session du 2026-03-27
+- sujets traités :
+  - Livraison du lot multi-systèmes PF2E/DND5E (modèle de données + stockage + adaptation UI)
+  - Intégration i18n FR/EN (provider, locales, mapping des termes métier)
+  - Refonte import/export (modal unifiée, CSV adaptés par système, normalisation FR/EN, collage multi-séparateurs)
+  - Évolution du roll avancé (bornes min/max niveau/quantité/valeur, sliders, champs manuels, modes étendus)
+  - Stabilisation UI Owlbear (mesure de largeur utile + redimensionnement dynamique popover)
+- fichiers modifiés :
+  - `src/App.tsx`
+  - `src/components/TableList.tsx`
+  - `src/components/TableEditor.tsx`
+  - `src/components/RollDialog.tsx`
+  - `src/components/ResultDialog.tsx`
+  - `src/components/SharedGainPage.tsx`
+  - `src/utils/storage.ts`
+  - `src/utils/loot.ts`
+  - `src/types.ts`
+  - `src/i18n/index.tsx`
+  - `src/i18n/gameTerms.ts`
+  - `src/i18n/locales/fr.ts`
+  - `src/i18n/locales/en.ts`
+  - `src/owlbear.ts`
+  - `src/main.tsx`
+  - `src/index.css`
+  - `README.md`
+  - `PROJECT_CONTEXT.md`
+- décisions prises :
+  - Garder les données de tables en local, séparées par système de jeu
+  - Centraliser les transferts (import/export) dans une modal dédiée pour simplifier le flux utilisateur
+  - Conserver l’approche itérative sur le layout Owlbear (ajustements ciblés plutôt que refonte)
+- points de vigilance :
+  - Vérifier avec des fichiers utilisateurs réels la robustesse de la normalisation FR/EN (catégories, raretés, types, devises)
+  - Continuer la validation du rendu popover en situation Owlbear réelle (tailles et densités variées)
+
+  ### Session du 2026-03-28
+- sujets traités :
+  - Correction du sens de pondération des probabilités DND5E dans `utils/loot` pour réaligner les modes low/high avec leur intention fonctionnelle
+  - Recalibrage des puissances DND5E (`soft`/`strong`) pour conserver une différence de comportement lisible en utilisation réelle
+  - Mise à jour de la documentation projet/utilisateur en conservant la structure existante des documents
+- fichiers modifiés :
+  - `src/utils/loot.ts`
+  - `README.md`
+  - `PROJECT_CONTEXT.md`
+- décisions prises :
+  - Conserver le modèle de probabilité existant mais corriger uniquement la direction des distances de rareté côté DND5E
+  - Garder une mise à jour documentaire incrémentale, sans réorganisation lourde des sections déjà en place
+- points de vigilance :
+  - Revalider en test manuel les modes “raretés basses” / “raretés hautes” en DND5E pour confirmer le ressenti attendu
+  - Continuer à documenter les changements par date dans ce journal pour faciliter les reprises de contexte
 
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.
