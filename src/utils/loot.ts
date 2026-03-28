@@ -84,17 +84,14 @@ function getEffectiveWeight(
   options: RollOptions
 ): number {
   const rarityWeight = getRarityWeight(item.rarity);
-  const itemValue = getValueInCopper(item);
 
   if (table.system === "DND5E") {
     if (options.probabilityMode === "rarity-only") {
       return rarityWeight;
     }
 
-    const baseWeight = itemValue;
-
     if (options.probabilityMode === "balanced") {
-      return baseWeight * rarityWeight;
+      return 1;
     }
 
     const rarityRank = getRarityRank(item.rarity);
@@ -102,7 +99,7 @@ function getEffectiveWeight(
     const lowDistance = maxRarityRank - rarityRank + 1;
     const highDistance = rarityRank;
     const rarityFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
-    return baseWeight * rarityFactor;
+    return rarityFactor;
   }
 
   if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
