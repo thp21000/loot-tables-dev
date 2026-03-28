@@ -30,6 +30,7 @@ function getValueInCopper(item: LootItem): number {
 }
 
 function getModeFactor(
+  system: LootTable["system"],
   lowDistance: number,
   highDistance: number,
   mode: ProbabilityMode
@@ -43,20 +44,23 @@ function getModeFactor(
     return 1;
   }
 
+  const softPower = system === "DND5E" ? 1.2 : 1.5;
+  const strongPower = system === "DND5E" ? 1.6 : 2;
+
   if (mode === "low-soft") {
-    return Math.pow(highDistance, 1.5);
+    return Math.pow(highDistance, softPower);
   }
 
   if (mode === "low-strong") {
-    return Math.pow(highDistance, 2);
+    return Math.pow(highDistance, strongPower);
   }
 
   if (mode === "high-soft") {
-    return Math.pow(lowDistance, 1.5);
+    return Math.pow(lowDistance, softPower);
   }
 
   if (mode === "high-strong") {
-    return Math.pow(lowDistance, 2);
+    return Math.pow(lowDistance, strongPower);
   }
 
   return 1;
@@ -75,7 +79,7 @@ function getEffectiveWeight(
 
     const lowDistance = itemValue - options.minValuePc + 1;
     const highDistance = options.maxValuePc - itemValue + 1;
-    const valueFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
+    const valueFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
     return baseWeight * valueFactor;
   }
 
@@ -85,7 +89,7 @@ function getEffectiveWeight(
   const baseWeight = rarityWeight * itemValue * normalizedLevel;
   const lowDistance = item.level - options.minLevel + 1;
   const highDistance = options.maxLevel - item.level + 1;
-  const levelFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
+  const levelFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
 
 
   return baseWeight * levelFactor;
