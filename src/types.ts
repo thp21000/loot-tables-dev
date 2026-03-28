@@ -51,6 +51,8 @@ export type ItemSortMode =
   | "name-desc"
   | "level-asc"
   | "level-desc"
+  | "type-asc"
+  | "type-desc"
   | "category-asc"
   | "category-desc"
   | "rarity-asc"

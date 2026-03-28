@@ -91,6 +91,8 @@ const en = {
     "table.sortItems": "Sort items",
     "table.itemSort.levelAsc": "Level ascending",
     "table.itemSort.levelDesc": "Level descending",
+    "table.itemSort.typeAsc": "Type A → Z",
+    "table.itemSort.typeDesc": "Type Z → A",
     "table.itemSort.nameAsc": "Name A → Z",
     "table.itemSort.nameDesc": "Name Z → A",
     "table.itemSort.categoryAsc": "Category A → Z",

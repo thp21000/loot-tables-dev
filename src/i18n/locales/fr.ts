@@ -91,6 +91,8 @@ const fr = {
     "table.sortItems": "Trier les objets",
     "table.itemSort.levelAsc": "Niveau croissant",
     "table.itemSort.levelDesc": "Niveau décroissant",
+    "table.itemSort.typeAsc": "Type A → Z",
+    "table.itemSort.typeDesc": "Type Z → A",
     "table.itemSort.nameAsc": "Nom A → Z",
     "table.itemSort.nameDesc": "Nom Z → A",
     "table.itemSort.categoryAsc": "Catégorie A → Z",

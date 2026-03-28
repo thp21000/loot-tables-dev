@@ -133,6 +133,14 @@ function sortItems(items: LootTable["items"], mode: ItemSortMode) {
       return b.level - a.level;
     }
 
+    if (mode === "type-asc") {
+      return (a.type || "").localeCompare(b.type || "", "fr");
+    }
+
+    if (mode === "type-desc") {
+      return (b.type || "").localeCompare(a.type || "", "fr");
+    }
+    
     if (mode === "category-asc") {
       return a.category.localeCompare(b.category, "fr");
     }
@@ -207,7 +215,7 @@ export default function TableList({
   }
 
   function getItemSortMode(tableId: string): ItemSortMode {
-    return itemSortModes[tableId] ?? "level-asc";
+    return itemSortModes[tableId] ?? (currentSystem === "DND5E" ? "type-asc" : "level-asc");
   }
 
   function setItemSortMode(tableId: string, mode: ItemSortMode) {
@@ -434,8 +442,17 @@ export default function TableList({
                                     }
                                     style={controls.select}
                                   >
-                                    <option value="level-asc">{t("table.itemSort.levelAsc")}</option>
-                                    <option value="level-desc">{t("table.itemSort.levelDesc")}</option>
+                                    {currentSystem === "PF2E" ? (
+                                      <>
+                                        <option value="level-asc">{t("table.itemSort.levelAsc")}</option>
+                                        <option value="level-desc">{t("table.itemSort.levelDesc")}</option>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <option value="type-asc">{t("table.itemSort.typeAsc")}</option>
+                                        <option value="type-desc">{t("table.itemSort.typeDesc")}</option>
+                                      </>
+                                    )}
                                     <option value="name-asc">{t("table.itemSort.nameAsc")}</option>
                                     <option value="name-desc">{t("table.itemSort.nameDesc")}</option>
                                     <option value="category-asc">{t("table.itemSort.categoryAsc")}</option>
