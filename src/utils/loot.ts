@@ -28,14 +28,11 @@ function getValueInCopper(item: LootItem): number {
   return item.valueAmount * 1000;
 }
 
-function getLevelFactor(
-  itemLevel: number,
-  minLevel: number,
-  maxLevel: number,
+function getModeFactor(
+  lowDistance: number,
+  highDistance: number,
   mode: ProbabilityMode
 ): number {
-  const lowDistance = itemLevel - minLevel + 1;
-  const highDistance = maxLevel - itemLevel + 1;
 
   if (lowDistance <= 0 || highDistance <= 0) {
     return 0;
@@ -66,14 +63,25 @@ function getLevelFactor(
 
 function getEffectiveWeight(
   item: LootItem,
-  minLevel: number,
-  maxLevel: number,
-  mode: ProbabilityMode
+  table: LootTable,
+  options: RollOptions
 ): number {
-  if (item.level < minLevel || item.level > maxLevel) return 0;
 
   const rarityWeight = getRarityWeight(item.rarity);
-  const levelFactor = getLevelFactor(item.level, minLevel, maxLevel, mode);
+  if (table.system === "DND5E") {
+    const itemValue = getValueInCopper(item);
+    const lowDistance = itemValue - options.minValuePc + 1;
+    const highDistance = options.maxValuePc - itemValue + 1;
+    const valueFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
+    return rarityWeight * valueFactor;
+  }
+
+  if (item.level < options.minLevel || item.level > options.maxLevel) return 0;
+
+  const lowDistance = item.level - options.minLevel + 1;
+  const highDistance = options.maxLevel - item.level + 1;
+  const levelFactor = getModeFactor(lowDistance, highDistance, options.probabilityMode);
+
 
   return rarityWeight * levelFactor;
 }
@@ -127,7 +135,8 @@ export function rollLootTable(
 ): RollResult {
   const filteredBaseItems = table.items.filter((item) => {
     const matchesLevel =
-      item.level >= options.minLevel && item.level <= options.maxLevel;
+      table.system === "DND5E" ||
+      (item.level >= options.minLevel && item.level <= options.maxLevel);
     const matchesCategory =
       options.categories.length === 0 ||
       options.categories.includes(item.category);
@@ -143,12 +152,8 @@ export function rollLootTable(
   const weightedItems: RolledLootItem[] = filteredBaseItems
     .map((item) => ({
       ...item,
-      effectiveWeight: getEffectiveWeight(
-        item,
-        options.minLevel,
-        options.maxLevel,
-        options.probabilityMode
-      ),
+      effectiveWeight: getEffectiveWeight(item, table, options),
+
       valueInCopper: getValueInCopper(item),
     }))
     .filter((item) => item.effectiveWeight > 0);

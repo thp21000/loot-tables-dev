@@ -359,58 +359,60 @@ export default function RollDialog({
         </p>
 
         <div style={{ display: "grid", gap: "16px" }}>
-          <div>
-          <label style={typography.label}>{t("roll.levelRange")}</label>
-            <div style={{ display: "grid", gap: "8px" }}>
-            <DualSlider
-                min={levelBounds.min}
-                max={levelBounds.max}
-                minValue={minLevel}
-                maxValue={maxLevel}
-                onMinChange={(value) => setMinLevel(Math.min(value, maxLevel))}
-                onMaxChange={(value) => setMaxLevel(Math.max(value, minLevel))}
-              />
-              <div
-                style={{
-                  ...typography.pageSubtitle,
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <span>{t("roll.min")}</span>
-                <input
-                  type="number"
+          {currentSystem === "PF2E" ? (
+            <div>
+              <label style={typography.label}>{t("roll.levelRange")}</label>
+              <div style={{ display: "grid", gap: "8px" }}>
+                <DualSlider
                   min={levelBounds.min}
-                  max={maxLevel}
-                  value={minLevel}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    if (Number.isNaN(next)) return;
-                    setMinLevel(Math.max(levelBounds.min, Math.min(next, maxLevel)));
-                  }}
-                  style={{ ...controls.input, width: "90px", padding: "6px 8px" }}
-                />
-                <span>{t("roll.max")}</span>
-                <input
-                  type="number"
-                  min={minLevel}
                   max={levelBounds.max}
-                  value={maxLevel}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    if (Number.isNaN(next)) return;
-                    setMaxLevel(Math.min(levelBounds.max, Math.max(next, minLevel)));
-                  }}
-                  style={{ ...controls.input, width: "90px", padding: "6px 8px" }}
+                  minValue={minLevel}
+                  maxValue={maxLevel}
+                  onMinChange={(value) => setMinLevel(Math.min(value, maxLevel))}
+                  onMaxChange={(value) => setMaxLevel(Math.max(value, minLevel))}
                 />
-                <span>{t("column.level")}</span>
+                <div
+                  style={{
+                    ...typography.pageSubtitle,
+                    margin: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span>{t("roll.min")}</span>
+                  <input
+                    type="number"
+                    min={levelBounds.min}
+                    max={maxLevel}
+                    value={minLevel}
+                    onChange={(event) => {
+                      const next = Number(event.target.value);
+                      if (Number.isNaN(next)) return;
+                      setMinLevel(Math.max(levelBounds.min, Math.min(next, maxLevel)));
+                    }}
+                    style={{ ...controls.input, width: "90px", padding: "6px 8px" }}
+                  />
+                  <span>{t("roll.max")}</span>
+                  <input
+                    type="number"
+                    min={minLevel}
+                    max={levelBounds.max}
+                    value={maxLevel}
+                    onChange={(event) => {
+                      const next = Number(event.target.value);
+                      if (Number.isNaN(next)) return;
+                      setMaxLevel(Math.min(levelBounds.max, Math.max(next, minLevel)));
+                    }}
+                    style={{ ...controls.input, width: "90px", padding: "6px 8px" }}
+                  />
+                  <span>{t("column.level")}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
 
           <div>
           <label style={typography.label}>{t("roll.quantityRange")}</label>
