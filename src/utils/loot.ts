@@ -56,8 +56,8 @@ function getModeFactor(
     return 1;
   }
 
-  const softPower = system === "DND5E" ? 1.2 : 2;
-  const strongPower = system === "DND5E" ? 1.6 : 4;
+  const softPower = system === "DND5E" ? 1.5 : 2;
+  const strongPower = system === "DND5E" ? 3 : 4;
 
   if (mode === "low-soft") {
     return Math.pow(highDistance, softPower);
@@ -96,8 +96,8 @@ function getEffectiveWeight(
 
     const rarityRank = getRarityRank(item.rarity);
     const maxRarityRank = 8;
-    const lowDistance = maxRarityRank - rarityRank + 1;
-    const highDistance = rarityRank;
+    const lowDistance = rarityRank;
+    const highDistance = maxRarityRank - rarityRank + 1;
     const rarityFactor = getModeFactor(table.system, lowDistance, highDistance, options.probabilityMode);
     return rarityFactor;
   }
