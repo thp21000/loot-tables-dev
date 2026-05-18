@@ -29,6 +29,9 @@
   - Création / édition / suppression / duplication de tables
   - Gestion d’objets avec nom, lien, niveau, catégorie, rareté, valeur
   - Import/export JSON
+  - Import JSON global depuis un export complet ou depuis un export JSON d’une table seule
+  - Import JSON en nouvelle table depuis un export JSON généré par l’addon
+  - Import JSON dans une table précise avec choix ajouter/remplacer
   - Import/export CSV par table
   - Import CSV dans une table existante avec choix ajouter/remplacer
   - Collage multiple depuis Excel
@@ -184,6 +187,9 @@
 - [x] Filtrage des devises par système (PF2E sans pe/ep)
 - [x] Champs item étendus (type) pour couvrir DND5E
 - [x] Import CSV en nouvelle table
+- [x] Import JSON global compatible avec exports complets et exports d’une table seule
+- [x] Import JSON en nouvelle table
+- [x] Import JSON dans une table existante avec choix ajouter/remplacer
 - [x] Import CSV dans une table existante
 - [x] Choix ajouter/remplacer lors d’un import CSV dans une table
 - [x] Détection de doublons simples à l’import
