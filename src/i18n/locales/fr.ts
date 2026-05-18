@@ -39,7 +39,7 @@ const fr = {
     "app.transfer.scope": "Portée",
     "app.transfer.format": "Format",
     "app.transfer.table": "Table cible",
-    "app.transfer.importMode": "Mode d’import CSV",
+    "app.transfer.importMode": "Mode d’import",
     "app.transfer.import": "Importer",
     "app.transfer.export": "Exporter",
     "app.transfer.scope.global": "Global (toutes les tables)",

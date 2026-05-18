@@ -503,6 +503,55 @@ export default function App() {
   function handleCancelEdit() {
     setEditingTableId(null);
   }
+  function importItemsIntoTable(
+    tableId: string,
+    importedItems: LootItem[],
+    mode: ImportMode
+  ) {
+    const tableToUpdate = tables.find((table) => table.id === tableId);
+
+    if (!tableToUpdate) {
+      setAlertMessage(t("app.csvImportTableNotFound"));
+      return;
+    }
+
+    const importedItemsForTable = importedItems.map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+      type: item.type ?? "Aucun",
+    }));
+
+    const merged = mergeItemsWithDuplicateFilter(
+      tableToUpdate.items,
+      importedItemsForTable,
+      mode
+    );
+
+    setTables((prev) =>
+      prev.map((table) =>
+        table.id === tableId
+          ? {
+              ...table,
+              items: merged.nextItems,
+              updatedAt: new Date().toISOString(),
+            }
+          : table
+      )
+    );
+
+    const baseMessage = merged.replaced
+      ? t("app.importDoneReplace", { count: merged.importedCount })
+      : t("app.importDoneAppend", { count: merged.importedCount });
+
+    const duplicateMessage =
+      merged.skippedDuplicatesCount > 0
+        ? ` ${t("app.importDuplicatesSkipped", {
+            count: merged.skippedDuplicatesCount,
+          })}`
+        : "";
+
+    setAlertMessage(baseMessage + duplicateMessage);
+  }
 
   async function handleImportCsvIntoTable(
     tableId: string,
@@ -511,48 +560,27 @@ export default function App() {
   ) {
     try {
       const importedItemsForSystem = await importItemsFromCsvFile(file, currentSystem);
-
-      const tableToUpdate = tables.find((table) => table.id === tableId);
-
-      if (!tableToUpdate) {
-        setAlertMessage(t("app.csvImportTableNotFound"));
-        return;
-      }
-
-      const merged = mergeItemsWithDuplicateFilter(
-        tableToUpdate.items,
-        importedItemsForSystem,
-        mode
-      );
-
-      setTables((prev) =>
-        prev.map((table) =>
-          table.id === tableId
-            ? {
-                ...table,
-                items: merged.nextItems,
-                updatedAt: new Date().toISOString(),
-              }
-            : table
-        )
-      );
-
-      const baseMessage = merged.replaced
-      ? t("app.importDoneReplace", { count: merged.importedCount })
-      : t("app.importDoneAppend", { count: merged.importedCount });
-
-      const duplicateMessage =
-        merged.skippedDuplicatesCount > 0
-        ? ` ${t("app.importDuplicatesSkipped", {
-          count: merged.skippedDuplicatesCount,
-        })}`
-          : "";
-
-      setAlertMessage(baseMessage + duplicateMessage);
+      importItemsIntoTable(tableId, importedItemsForSystem, mode);
     } catch (error) {
       console.error(error);
       setAlertMessage(t("app.importCsvFailed"));
     }
+  }
+
+  async function handleImportJsonIntoTable(
+    tableId: string,
+    file: File,
+    mode: ImportMode
+  ) {
+    const importedTables = await importTablesFromFile(file);
+    const importedItems = importedTables.flatMap((table) => table.items);
+
+    if (importedItems.length === 0) {
+      setAlertMessage(t("app.importNoTableInJson"));
+      return;
+    }
+
+    importItemsIntoTable(tableId, importedItems, mode);
   }
 
   function handleCloseRollDialog() {
@@ -628,7 +656,7 @@ export default function App() {
     }
 
     if (action === "import" && scope === "table") {
-      return ["csv"];
+      return ["json", "csv"];
     }
 
     if (action === "import" && scope === "new-table") {
@@ -733,13 +761,17 @@ export default function App() {
         const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
         setTables((prev) => [...prev, importedTable]);
         setAlertMessage(t("app.importNewTableFromCsv", { name: importedTable.name }));
-      } else if (transferFormat === "csv" && transferScope === "table") {
+      } else if (transferScope === "table") {
         if (!transferTableId) {
           setAlertMessage(t("app.targetTableRequiredImport"));
           return;
         }
 
-        await handleImportCsvIntoTable(transferTableId, file, transferImportMode);
+        if (transferFormat === "json") {
+          await handleImportJsonIntoTable(transferTableId, file, transferImportMode);
+        } else {
+          await handleImportCsvIntoTable(transferTableId, file, transferImportMode);
+        }
       } else {
         setAlertMessage(t("app.transfer.unavailable"));
       }
@@ -1257,9 +1289,7 @@ export default function App() {
             </div>
           ) : null}
 
-          {transferAction === "import" &&
-          transferScope === "table" &&
-          transferFormat === "csv" ? (
+          {transferAction === "import" && transferScope === "table" ? (
             <div>
               <label style={typography.label}>{t("app.transfer.importMode")}</label>
               <select
