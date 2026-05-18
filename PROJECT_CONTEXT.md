@@ -508,6 +508,28 @@ Le sujet encore ouvert n’est plus une refonte du comportement global, mais un 
   - Revalider en test manuel les modes “raretés basses” / “raretés hautes” en DND5E pour confirmer le ressenti attendu
   - Continuer à documenter les changements par date dans ce journal pour faciliter les reprises de contexte
 
+### Session du 2026-05-18
+- sujets traités :
+  - Correction de l’import JSON qui refusait certains fichiers pourtant générés par l’addon
+  - Acceptation des exports JSON d’une table seule en plus des exports JSON globaux sous forme de tableau
+  - Ajout du format JSON dans la portée d’import “table précise”
+  - Ajout de l’import JSON dans une table existante avec les mêmes modes ajouter/remplacer que l’import CSV
+  - Vérification du flux “nouvelle table” en JSON pour qu’un export d’une table puisse bien recréer une table indépendante
+- fichiers modifiés :
+  - `src/utils/storage.ts`
+  - `src/App.tsx`
+  - `src/i18n/locales/fr.ts`
+  - `src/i18n/locales/en.ts`
+  - `PROJECT_CONTEXT.md`
+- décisions prises :
+  - Garder `importTablesFromFile` comme point d’entrée commun des imports JSON, mais le rendre compatible avec les deux formes produites par l’addon : tableau de tables et table unique
+  - Réutiliser la logique existante de dédoublonnage et de remplacement/ajout pour les imports JSON dans une table précise, afin d’éviter deux comportements différents entre CSV et JSON
+  - Renommer le libellé “mode d’import CSV” en “mode d’import”, car il s’applique maintenant aussi au JSON dans une table précise
+- points de vigilance :
+  - Retester manuellement les trois portées JSON : global, nouvelle table, table précise
+  - Vérifier que les imports JSON inter-systèmes gardent le comportement attendu avec le système actuellement sélectionné dans l’UI
+  - Conserver les exports JSON réguliers comme recommandation principale de sauvegarde utilisateur
+
 ## Règles à respecter
 - Toujours donner le fichier complet patcher.
 - Ne pas repartir de zéro ni proposer une refonte totale sans raison.
