@@ -375,45 +375,54 @@ export function exportSingleTableToCsv(table: LootTable): void {
   }
 }
 
-function isValidLootTableArray(data: unknown): data is LootTable[] {
-  if (!Array.isArray(data)) {
+function isValidLootTable(data: unknown): data is LootTable {
+  if (!data || typeof data !== "object") {
     return false;
   }
 
-  return data.every((table) => {
-    if (!table || typeof table !== "object") {
-      return false;
-    }
-
-    const candidate = table as Record<string, unknown>;
+  const candidate = data as Record<string, unknown>;
 
     return (
-      typeof candidate.id === "string" &&
-      typeof candidate.name === "string" &&
-      typeof candidate.createdAt === "string" &&
-      typeof candidate.updatedAt === "string" &&
-      Array.isArray(candidate.items)
-    );
-  });
+    typeof candidate.id === "string" &&
+    typeof candidate.name === "string" &&
+    typeof candidate.createdAt === "string" &&
+    typeof candidate.updatedAt === "string" &&
+    Array.isArray(candidate.items)
+  );
+}
+
+    function getImportableLootTables(data: unknown): LootTable[] | null {
+  if (Array.isArray(data)) {
+    return data.every(isValidLootTable) ? data : null;
+  }
+
+  if (isValidLootTable(data)) {
+    return [data];
+  }
+
+  return null;
 }
 
 export async function importTablesFromFile(file: File): Promise<LootTable[]> {
-  const text = await file.text();
+  const text = (await file.text()).replace(/^\uFEFF/, "");
   const parsed = JSON.parse(text);
+  const importedTables = getImportableLootTables(parsed);
 
-  if (!isValidLootTableArray(parsed)) {
+  if (!importedTables) {
     throw new Error("Format JSON invalide.");
   }
 
-  return parsed.map((table) => ({
-    ...table,
-    system: table.system === "DND5E" ? "DND5E" : "PF2E",
-    items: Array.isArray(table.items)
-      ? table.items.map((item: LootItem) =>
-          normalizeItem(item, table.system === "DND5E" ? "DND5E" : "PF2E")
-        )
-      : [],
-  }));
+  return importedTables.map((table) => {
+    const system = table.system === "DND5E" ? "DND5E" : "PF2E";
+
+    return {
+      ...table,
+      system,
+      items: Array.isArray(table.items)
+        ? table.items.map((item: LootItem) => normalizeItem(item, system))
+        : [],
+    };
+  });
 }
 
 export function mergeImportedTables(
