@@ -205,7 +205,10 @@ export default function SharedGainPage() {
                   display: "grid",
                   gap: "10px",
                   flex: "1 1 auto",
-                  overflow: "hidden",
+                  minHeight: 0,
+                  overflowY: "auto",
+                  overscrollBehavior: "contain",
+                  paddingRight: "4px",
                 }}
               >
                 {summary.items.map((item, index) => (
