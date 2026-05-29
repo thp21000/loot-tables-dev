@@ -191,7 +191,7 @@ const en = {
     "gain.noItem": "No item found.",
     "news.title": "News & updates",
     "news.intro": "Summary of the latest application changes:",
-    "news.item.1": "Version 0.1.83",
+    "news.item.1": "Version 0.1.84",
     "news.item.2": "JSON import fix: global exports and single table exports are now recognized.",
     "news.item.3": "JSON import also works when creating a new table and within a specific table.",
     "news.item.4": "Popup scrolling issue fixed: the background no longer scrolls when a window is open.",

@@ -48,7 +48,8 @@ export default function Modal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "16px",
+        padding: "40px 16px",
+        boxSizing: "border-box",
         zIndex: 2000,
         overflow: "hidden",
       }}
@@ -58,7 +59,7 @@ export default function Modal({
         style={{
           width: "100%",
           maxWidth: "520px",
-          maxHeight: "calc(100svh - 32px)",
+          maxHeight: "calc(100svh - 80px)",
           background: "#1e1e1e",
           border: "1px solid #444",
           borderRadius: "14px",

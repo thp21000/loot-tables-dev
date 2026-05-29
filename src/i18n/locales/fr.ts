@@ -191,7 +191,7 @@ const fr = {
     "gain.noItem": "Aucun objet trouvé.",
     "news.title": "News & mises à jour",
     "news.intro": "Résumé des dernières évolutions de l’application :",
-    "news.item.1": "Version 0.1.83",
+    "news.item.1": "Version 0.1.84",
     "news.item.2": "Correction de l’import JSON : les exports globaux et les exports d’une seule table sont maintenant reconnus.",
     "news.item.3": "L’import JSON fonctionne aussi en création de nouvelle table et dans une table précise.",
     "news.item.4": "Correction du scroll des popups : le fond ne défile plus quand une fenêtre est ouverte.",

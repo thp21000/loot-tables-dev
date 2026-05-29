@@ -136,7 +136,8 @@ export default function ResultDialog({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "16px",
+        padding: "40px 16px",
+        boxSizing: "border-box",
         zIndex: 1000,
         backdropFilter: "blur(3px)",
         overflow: "hidden",
@@ -146,7 +147,7 @@ export default function ResultDialog({
         style={{
           width: "100%",
           maxWidth: "920px",
-          maxHeight: "calc(100svh - 32px)",
+          maxHeight: "calc(100svh - 80px)",
           overflowY: "auto",
           overscrollBehavior: "contain",
           background: colors.cardBg,
