@@ -324,6 +324,26 @@ export default function RollDialog({
     });
   }
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, [isOpen]);
+
+
   if (!isOpen) {
     return null;
   }
@@ -340,12 +360,16 @@ export default function RollDialog({
         padding: "16px",
         zIndex: 1000,
         backdropFilter: "blur(3px)",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: "640px",
+          maxHeight: "calc(100svh - 32px)",
+          overflowY: "auto",
+          overscrollBehavior: "contain",
           background: colors.cardBg,
           border: `1px solid ${colors.border}`,
           borderRadius: "16px",

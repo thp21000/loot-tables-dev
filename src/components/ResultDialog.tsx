@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameSystem, OwlbearPlayerRole, ProbabilityMode, RollResult } from "../types";
 import { buttons, colors, layout, radius, typography } from "../styles/ui";
 import { useI18n } from "../i18n";
@@ -104,6 +104,25 @@ export default function ResultDialog({
     }
   }
 
+  useEffect(() => {
+    if (!isOpen || !result) {
+      return;
+    }
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, [isOpen, result]);
+
   if (!isOpen || !result) {
     return null;
   }
@@ -120,14 +139,16 @@ export default function ResultDialog({
         padding: "16px",
         zIndex: 1000,
         backdropFilter: "blur(3px)",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: "920px",
-          maxHeight: "90vh",
+          maxHeight: "calc(100svh - 32px)",
           overflowY: "auto",
+          overscrollBehavior: "contain",
           background: colors.cardBg,
           border: `1px solid ${colors.border}`,
           borderRadius: "16px",

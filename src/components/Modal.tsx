@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 type ModalProps = {
   isOpen: boolean;
   title?: string;
@@ -13,6 +15,25 @@ export default function Modal({
   onClose,
   footer,
 }: ModalProps) {
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -29,6 +50,7 @@ export default function Modal({
         justifyContent: "center",
         padding: "16px",
         zIndex: 2000,
+        overflow: "hidden",
       }}
     >
       <div
@@ -36,17 +58,21 @@ export default function Modal({
         style={{
           width: "100%",
           maxWidth: "520px",
+          maxHeight: "calc(100svh - 32px)",
           background: "#1e1e1e",
           border: "1px solid #444",
           borderRadius: "14px",
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.35)",
           overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div
           style={{
             padding: "16px 20px",
             borderBottom: title ? "1px solid #333" : "none",
+            flexShrink: 0,
           }}
         >
           {title ? (
@@ -56,7 +82,15 @@ export default function Modal({
           ) : null}
         </div>
 
-        <div style={{ padding: "20px" }}>{children}</div>
+        <div
+          style={{
+            padding: "20px",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+          }}
+        >
+          {children}
+        </div>
 
         {footer ? (
           <div
@@ -67,6 +101,7 @@ export default function Modal({
               justifyContent: "center",
               gap: "8px",
               flexWrap: "wrap",
+              flexShrink: 0,
             }}
           >
             {footer}

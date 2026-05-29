@@ -191,10 +191,10 @@ const fr = {
     "gain.noItem": "Aucun objet trouvé.",
     "news.title": "News & mises à jour",
     "news.intro": "Résumé des dernières évolutions de l’application :",
-    "news.item.1": "Support multi-systèmes PF2E / DND5E avec stockage séparé.",
-    "news.item.2": "Paramètres centralisés (langue, système) et import/export unifié.",
-    "news.item.3": "Roll avancé avec bornes min/max et modes de probabilité étendus.",
-    "news.item.4": "Imports/collages robustes (FR/EN, séparateurs multiples, normalisation).",
+    "news.item.1": "Version 0.1.83",
+    "news.item.2": "Correction de l’import JSON : les exports globaux et les exports d’une seule table sont maintenant reconnus.",
+    "news.item.3": "L’import JSON fonctionne aussi en création de nouvelle table et dans une table précise.",
+    "news.item.4": "Correction du scroll des popups : le fond ne défile plus quand une fenêtre est ouverte.",
     "news.important": "Important : pensez à exporter régulièrement vos tables en JSON pour éviter toute perte locale.",
     };
   
